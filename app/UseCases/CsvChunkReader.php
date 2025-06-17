@@ -12,7 +12,7 @@ abstract class CsvChunkReader
 private function trataTextoCSV($txt)
 {
     // Substitui \" por "
-    $txt = str_replace('\"', '"', $txt);
+    $txt = str_replace('\\', '', $txt);
 
     // Aqui você pode aplicar outras limpezas adicionais
     // ex: normalização de acentos, trims, etc.
