@@ -2,6 +2,7 @@
 namespace App\UseCases;
 
 use DB;
+use Exception;
 
 class EmpresaUseCase extends CsvChunkReader
 {
@@ -19,27 +20,27 @@ class EmpresaUseCase extends CsvChunkReader
     {
 
         foreach ($this->readCsv($file, $this->colunas) as $chunk) {
-
-            // Visualização: Mostra cada linha que será inserida/atualizada
-            foreach ($chunk as $key => $linha) {
-                echo 'Upserting: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
-                foreach ($linha as $key => $value) {
-
-                    if ($key === 'porte') {
-                        // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
-                        if (empty($value)) {
-                             $chunk[$key][$key] = null;
-                        }
-                    }
-
-                }
-            }
             try {
+                // Visualização: Mostra cada linha que será inserida/atualizada
+                foreach ($chunk as $key => $linha) {
+
+                    foreach ($linha as $key => $value) {
+
+                        if ($key === 'porte') {
+                            // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
+                            if (empty($value)) {
+                                $chunk[$key][$key] = null;
+                            }
+                        }
+
+                    }
+                }
+
                 DB::table('empresa')->upsert($chunk, ['cnpj_basico'], $this->colunas);
 
                 echo '✅ OK - Chunk com ' . count($chunk) . ' registros inserido.' . PHP_EOL;
 
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 file_put_contents(
                     '/tmp/erro.txt',
                     print_r($e->getMessage(), true) . PHP_EOL . print_r($chunk, true),
