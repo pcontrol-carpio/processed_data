@@ -20,7 +20,6 @@ abstract class CsvChunkReader
       $msg = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $linha);
   }catch(Exception $e){
 
-    var_dump($linha);
       $msg = $linha;
   }
 
@@ -73,14 +72,22 @@ abstract class CsvChunkReader
      * Permite sobrescrever para processar cada linha conforme necessidade
      * Por padrão, retorna a linha crua.
      */
-    protected function processRow(array $row,$colunas)
-    {
-        foreach($row as &$line){
-            $line = $this->trataTexto($line);
-        }
-
-
-        return array_combine($colunas, $row);
-        // return   $row;
+  protected function processRow(array $row, $colunas)
+{
+    foreach ($row as &$line) {
+        $line = $this->trataTexto($line);
     }
+
+    if (count($colunas) !== count($row)) {
+        throw new \InvalidArgumentException(
+            'Número de colunas e valores não coincide. ' .
+            'Esperado: ' . count($colunas) . ', recebido: ' . count($row) .
+            '. Dados recebidos: [' . implode(', ', $row) . ']'
+        );
+
+    }
+
+    return array_combine($colunas, $row);
+}
+
 }
