@@ -36,6 +36,31 @@ abstract class CsvChunkReader
     return $msg;
 }
 
+private function sanitizeCsv(string $file): string
+{
+    $sanitizedFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cleaned_' . basename($file);
+
+    $in = fopen($file, 'r');
+    $out = fopen($sanitizedFile, 'w');
+
+    if (!$in || !$out) {
+        throw new \RuntimeException("Erro ao abrir arquivos para sanitização");
+    }
+
+    while (($row = fgetcsv($in, separator: ';')) !== false) {
+        foreach ($row as &$field) {
+            $field = $this->trataTexto($field); // aplica a limpeza
+        }
+        fputcsv($out, $row, ';');
+    }
+
+    fclose($in);
+    fclose($out);
+
+    return $sanitizedFile;
+}
+
+
     /**
      * Lê um arquivo CSV em chunks, processando via yield.
      *
@@ -45,7 +70,7 @@ abstract class CsvChunkReader
    public function readCsv(string $file, $colunas, int $startChunk = 0): \Generator
 {
     $filename = basename($file);
-
+    $file = $this->sanitizeCsv($file);
     $handle = fopen($file, 'r');
     if ($handle === false) {
         throw new Exception('Erro ao abrir o arquivo');
