@@ -52,6 +52,10 @@ abstract class CsvChunkReader
     }
 
     if($startChunk != 0){
+            $startChunk -= 2 ;
+        if($startChunk < 0){
+            $startChunk = 0;
+        }
         echo PHP_EOL."Reiniciando leitura do arquivo: $filename a partir do chunk $startChunk" . PHP_EOL;
     }
 
