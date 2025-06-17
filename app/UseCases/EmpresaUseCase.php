@@ -18,6 +18,12 @@ class EmpresaUseCase extends CsvChunkReader
     public function __invoke($file)
     {
         foreach ($this->readCsv($file, $this->colunas) as $chunk) {
+
+            foreach($chunk as $key => $value){
+                if($key === 'porte'){
+                    $chunk[$key] = (!is_numeric($value)) ? null : (int)$value;
+                }
+            }
             try{
             DB::table('empresa')->upsert($chunk, ['cnpj_basico'], $this->colunas);
             }catch(\Exception $e){
