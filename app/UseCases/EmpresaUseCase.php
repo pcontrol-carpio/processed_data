@@ -18,14 +18,13 @@ class EmpresaUseCase extends CsvChunkReader
     ];
     public function __invoke($file)
     {
-
-        foreach ($this->readCsv($file, $this->colunas) as $chunk) {
+        $progress = DB::table('csv_progress')->where('filename', basename($file))->first();
+        $startChunk = $progress->last_chunk ?? 0;
+        foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
             try {
                 // Visualização: Mostra cada linha que será inserida/atualizada
                 foreach ($chunk as $key => $linha) {
-
                     foreach ($linha as $key => $value) {
-
                         if ($key === 'porte') {
                             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
                             if (empty($value)) {
@@ -51,6 +50,10 @@ class EmpresaUseCase extends CsvChunkReader
                 dd($e); // Exibe o erro no terminal e para a execução
             }
         }
+            echo '✅ Todos os registros foram processados com sucesso.' . PHP_EOL;
+        // Retorna true para indicar que o processamento foi concluído com sucesso
+        echo '✅ Processamento concluído.' . PHP_EOL;
+        return true;
 
     }
 

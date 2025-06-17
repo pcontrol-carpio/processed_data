@@ -218,6 +218,15 @@ CREATE TABLE `socio` (
 
 ALTER TABLE socio ADD UNIQUE (cnpj_basico,nome_socio,cnpj_cpf_socio);
 
+
+CREATE TABLE csv_progress (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL UNIQUE,
+    last_chunk BIGINT UNSIGNED DEFAULT 0,
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    updated_at TIMESTAMP NULL DEFAULT NULL
+);
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

@@ -1,6 +1,7 @@
 <?php
 namespace App\UseCases;
 
+use DB;
 use Exception;
 
 
@@ -41,32 +42,56 @@ abstract class CsvChunkReader
      * @param string $file Caminho do arquivo CSV
      * @return \Generator
      */
-    public function readCsv(string $file,$colunas): \Generator
-    {
-        $handle = fopen($file, 'r');
-        if ($handle === false) {
-            throw new \Exception('Erro ao abrir o arquivo');
-        }
+   public function readCsv(string $file, $colunas, int $startChunk = 0): \Generator
+{
+    $filename = basename($file);
 
-        while (!feof($handle)) {
-            $chunk = [];
-            for ($i = 0; $i < $this->chunkSize && !feof($handle); $i++) {
-                $row = fgetcsv($handle, separator:';');
-
-                if ($row === false) {
-                    continue;
-                }
-                $chunk[] = $this->processRow($row,$colunas); // permite customização
-            }
-
-            if (!empty($chunk)) {
-                yield $chunk;
-            }
-        }
-
-        fclose($handle);
-        unlink($file); // Se quiser deletar depois de processar
+    $handle = fopen($file, 'r');
+    if ($handle === false) {
+        throw new Exception('Erro ao abrir o arquivo');
     }
+
+    if($startChunk != 0){
+        echo "Reiniciando leitura do arquivo: $filename a partir do chunk $startChunk" . PHP_EOL;
+    }
+
+    // Lê e ignora o cabeçalho
+    $header = fgetcsv($handle, separator: ';');
+
+    // Pular linhas já processadas
+    $linesToSkip = $startChunk * $this->chunkSize;
+    for ($i = 0; $i < $linesToSkip && !feof($handle); $i++) {
+        fgets($handle);
+    }
+
+    $currentChunk = $startChunk;
+
+    while (!feof($handle)) {
+        $chunk = [];
+        for ($i = 0; $i < $this->chunkSize && !feof($handle); $i++) {
+            $row = fgetcsv($handle, separator: ';');
+            if ($row === false || count($row) === 0) {
+                continue;
+            }
+
+            $chunk[] = $this->processRow($row, $colunas);
+        }
+
+        if (!empty($chunk)) {
+            yield $chunk;
+
+            // Atualiza o progresso no banco
+            DB::table('csv_progress')->updateOrInsert(
+                ['filename' => $filename],
+                ['last_chunk' => ++$currentChunk, 'updated_at' => now()]
+            );
+        }
+    }
+
+    fclose($handle);
+    unlink($file); // opcional
+}
+
 
     /**
      * Permite sobrescrever para processar cada linha conforme necessidade
