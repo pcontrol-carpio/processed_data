@@ -25,7 +25,6 @@ class EmpresaUseCase extends CsvChunkReader
                 echo 'Upserting: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
                 foreach ($linha as $key => $value) {
 
-                    dd($key);
                     if ($key === 'porte') {
                         // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
                         if (is_numeric($value)) {
