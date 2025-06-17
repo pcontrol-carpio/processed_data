@@ -24,7 +24,12 @@ class SocioUseCase extends CsvChunkReader
 
     public function __invoke($file)
     {
-        foreach ($this->readCsv($file, $this->colunas) as $chunk) {
+        // Obtém o progresso do processamento do arquivo CSV
+        $progress = DB::table('csv_progress')->where('filename', basename($file))->first();
+        // Define o chunk inicial a partir do progresso salvo, ou começa do zero
+        $startChunk = $progress->last_chunk ?? 0;
+        // Lê o arquivo CSV em chunks, processando cada chunk
+        foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
             // Visualização: Mostra cada linha que será inserida/atualizada
             foreach ($chunk as $linha) {
                 echo 'Upserting: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;

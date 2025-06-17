@@ -99,7 +99,9 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
     public function __invoke($file)
     {
-        foreach ($this->readCsv($file, $this->colunas) as $chunk) {
+           $progress = DB::table('csv_progress')->where('filename', basename($file))->first();
+        $startChunk = $progress->last_chunk ?? 0;
+        foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
             try {
 
                 foreach ($chunk as &$linha) {
