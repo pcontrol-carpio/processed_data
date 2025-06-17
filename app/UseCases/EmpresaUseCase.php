@@ -17,20 +17,38 @@ class EmpresaUseCase extends CsvChunkReader
     ];
     public function __invoke($file)
     {
+
         foreach ($this->readCsv($file, $this->colunas) as $chunk) {
 
-            foreach($chunk as $key => $value){
-                if($key === 'porte'){
-                    $chunk[$key] = (!is_numeric($value)) ? null : (int)$value;
+            // Visualização: Mostra cada linha que será inserida/atualizada
+            foreach ($chunk as $key => $linha) {
+                echo 'Upserting: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+                foreach ($linha as $key => $value) {
+
+                    dd($key);
+                    if ($key === 'porte') {
+                        // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
+                        if (is_numeric($value)) {
+                            $chunk[$key][$key] = (int) $value;
+                        } else {
+                            $chunk[$key][$key] = null;
+                        }
+                    }
+
                 }
             }
-            try{
-            DB::table('empresa')->upsert($chunk, ['cnpj_basico'], $this->colunas);
-            }catch(\Exception $e){
-                    file_put_contents('/tmp/erro.txt', print_r($e->getMessage(),true).PHP_EOL.print_r($chunk,true));
-              dd($e);exit;
+            try {
+                DB::table('empresa')->upsert($chunk, ['cnpj_basico'], $this->colunas);
 
-                    // return false;
+                echo '✅ OK - Chunk com ' . count($chunk) . ' registros inserido.' . PHP_EOL;
+
+            } catch (\Exception $e) {
+                file_put_contents(
+                    '/tmp/erro.txt',
+                    print_r($e->getMessage(), true) . PHP_EOL . print_r($chunk, true),
+                    FILE_APPEND
+                );
+                dd($e); // Exibe o erro no terminal e para a execução
             }
         }
 

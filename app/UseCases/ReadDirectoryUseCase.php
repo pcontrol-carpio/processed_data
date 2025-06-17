@@ -13,7 +13,7 @@ class ReadDirectoryUseCase
     $pastasProcessadas = DB::table('processados')->where('completo',1)->pluck('pasta');
 
     // Busca HTML remoto e extrai os links de diretórios válidos
-    $html = Http::get($url)->body();
+    $html = Http::retry(20, 5)->get($url)->body();
     preg_match_all('/href="([^"]+)"/i', $html, $matches);
 
     $pastasRemotas = collect($matches[1])->filter(function ($href) {

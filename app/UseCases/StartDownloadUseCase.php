@@ -12,6 +12,7 @@ class StartDownloadUseCase
 
     private function download($file)
     {
+
         $zipPath = tempnam(sys_get_temp_dir(), 'zip_');
 
         $client = new Client();
@@ -34,7 +35,7 @@ class StartDownloadUseCase
                 },
             ]);
         } catch (RequestException $e) {
-            throw new \Exception('Erro ao baixar ZIP');
+            throw new Exception('Erro ao baixar ZIP');
         }
         $extractDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('unzip_', true);
         mkdir($extractDir);
@@ -45,7 +46,7 @@ class StartDownloadUseCase
             $zip->close();
         } else {
             unlink($zipPath);
-            throw new \Exception('Não foi possível descompactar o ZIP');
+            throw new Exception('Não foi possível descompactar o ZIP');
         }
         unlink($zipPath);
         return $this->returnFile($extractDir);
@@ -61,7 +62,7 @@ class StartDownloadUseCase
             $primeiroArquivo = $arquivos[0];
             return $primeiroArquivo;
         } else {
-            throw new \Exception('Nenhum arquivo encontrado no diretório extraído!');
+            throw new Exception('Nenhum arquivo encontrado no diretório extraído!');
         }
     }
     public function __invoke($file, $folder, $url)

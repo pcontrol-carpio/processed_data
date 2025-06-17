@@ -104,7 +104,9 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
                 foreach ($chunk as &$linha) {
                     $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
-
+                    // Visualização: Mostra cada linha que será inserida/atualizada
+                    echo 'Upserting: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+                    // Verifica se a empresa existe, se não existir, pula para a próxima linha
                     $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
                     if (empty($linha['empresa_id'])) {
                         continue; // Skip if CNPJ parts are missing
@@ -116,10 +118,12 @@ class EstabelecimentoUseCase extends CsvChunkReader
                         $linha['nome_fantasia'] = $razaoSocial;
                     }
                     DB::table('estabelecimento')->upsert([$linha], ['cnpj_basico'], $this->colunas);
+                    echo '✅ OK - registros inserido.' . PHP_EOL;
                     $registro          = DB::table('estabelecimento')->where('cnpj_basico', $linha['cnpj_basico'])->first();
                     $idEstabelecimento = $registro->id ?? null;
                     if ($idEstabelecimento) {
                         $this->popularTabelaBase($idEstabelecimento, $empresa, $linha);
+                        echo '✅ Base populada com sucesso.' . PHP_EOL;
                     }
 
                 }

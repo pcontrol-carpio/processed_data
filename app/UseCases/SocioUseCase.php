@@ -25,11 +25,18 @@ class SocioUseCase extends CsvChunkReader
     public function __invoke($file)
     {
         foreach ($this->readCsv($file, $this->colunas) as $chunk) {
+            // Visualização: Mostra cada linha que será inserida/atualizada
+            foreach ($chunk as $linha) {
+                echo 'Upserting: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+            }
+            // Tenta inserir ou atualizar os dados na tabela 'socio'
+            // Se ocorrer um erro, ele será capturado e registrado no arquivo de log
             try{
             DB::table('socio')->upsert($chunk, ['cnpj_basico'], $this->colunas);
+                echo '✅ OK - Chunk com ' . count($chunk) . ' registros inserido.' . PHP_EOL;
             }catch(Exception $e){
                     file_put_contents('/tmp/erro.txt', print_r($e->getMessage(),true).PHP_EOL.print_r($chunk,true));
-                    return false;
+                    dd($e);
             }
         }
 

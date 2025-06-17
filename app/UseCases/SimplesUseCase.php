@@ -20,11 +20,16 @@ class SimplesUseCase extends CsvChunkReader
     public function __invoke($file)
     {
         foreach ($this->readCsv($file, $this->colunas) as $chunk) {
+
+             foreach ($chunk as $linha) {
+                echo 'Upserting: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+            }
             try{
             DB::table('simples')->upsert($chunk, ['cnpj_basico'], $this->colunas);
+                 echo '✅ OK - Chunk com ' . count($chunk) . ' registros inserido.' . PHP_EOL;
             }catch(Exception $e){
                     file_put_contents('/tmp/erro.txt', print_r($e->getMessage(),true).PHP_EOL.print_r($chunk,true));
-                    return false;
+                    dd($e);
             }
         }
 
