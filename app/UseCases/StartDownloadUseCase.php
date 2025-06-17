@@ -11,21 +11,33 @@ use ZipArchive;
 class StartDownloadUseCase
 {
 
-    private function fileCorrupted($file)
-    {
-        $zip = new ZipArchive();
-        if ($zip->open($file) === true) {
-            if ($zip->numFiles > 0) {
-
-                $zip->close();
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
+ private function fileCorrupted($file)
+{
+    $zip = new ZipArchive();
+    if ($zip->open($file) !== true) {
+        return true; // Não conseguiu abrir => corrompido
     }
+
+    if ($zip->numFiles === 0) {
+        $zip->close();
+        return true; // Nenhum arquivo => suspeita de corrupção
+    }
+
+    // Tenta ler cada arquivo do ZIP para validar
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $stat = $zip->statIndex($i);
+        $stream = $zip->getStream($stat['name']);
+        if (!$stream) {
+            $zip->close();
+            return true; // Falha ao abrir o conteúdo => corrompido
+        }
+        fclose($stream);
+    }
+
+    $zip->close();
+    return false; // Se chegou aqui, o ZIP está íntegro
+}
+
 
     private function download($file)
     {
@@ -34,7 +46,6 @@ class StartDownloadUseCase
 
         $zipPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $name;
 
-        dd($zipPath);
         if(file_exists($zipPath)) {
             echo "Arquivo já baixado: $zipPath\n";
             // Verifica se o arquivo está corrompido
