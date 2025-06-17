@@ -77,8 +77,13 @@ abstract class CsvChunkReader
             if ($row === false || count($row) === 0) {
                 continue;
             }
-
+            try{
             $chunk[] = $this->processRow($row, $colunas);
+            }catch(\InvalidArgumentException $e) {
+                // Loga o erro e continua
+                file_put_contents('/tmp/erro.txt', $e->getMessage() . PHP_EOL . print_r($row, true), FILE_APPEND);
+                exit;
+            }
         }
 
         if (!empty($chunk)) {
@@ -111,7 +116,8 @@ abstract class CsvChunkReader
         throw new \InvalidArgumentException(
             'Número de colunas e valores não coincide. ' .
             'Esperado: ' . count($colunas) . ', recebido: ' . count($row) .
-            '. Dados recebidos: [' . implode(', ', $row) . ']'
+            '. Dados recebidos: [' . implode(', ', $row) . ']'.
+            ' Colunas esperadas: [' . implode(', ', $colunas) . ']'
         );
 
     }
