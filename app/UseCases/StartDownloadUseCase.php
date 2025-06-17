@@ -33,6 +33,8 @@ class StartDownloadUseCase
         $name = basename($file);
 
         $zipPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $name;
+
+        dd($zipPath);
         if(file_exists($zipPath)) {
             echo "Arquivo já baixado: $zipPath\n";
             // Verifica se o arquivo está corrompido
