@@ -27,10 +27,8 @@ class EmpresaUseCase extends CsvChunkReader
 
                     if ($key === 'porte') {
                         // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
-                        if (is_numeric($value)) {
-                            $chunk[$key][$key] = (int) $value;
-                        } else {
-                            $chunk[$key][$key] = null;
+                        if (empty($value)) {
+                             $chunk[$key][$key] = null;
                         }
                     }
 
