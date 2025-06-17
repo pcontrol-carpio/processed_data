@@ -35,9 +35,11 @@ class EmpresaUseCase extends CsvChunkReader
 
                     }
                 }
-
+                $inicio = microtime(true);
                 DB::table('empresa')->upsert($chunk, ['cnpj_basico'], $this->colunas);
-
+                $fim = microtime(true);
+                $tempo = $fim - $inicio;
+                echo '⏱ Tempo de execução: ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
                 echo '✅ OK - Chunk com ' . count($chunk) . ' registros inserido.' . PHP_EOL;
 
             } catch (Exception $e) {
