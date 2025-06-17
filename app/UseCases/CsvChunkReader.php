@@ -9,7 +9,16 @@ abstract class CsvChunkReader
 {
     protected int $chunkSize = 3000;
 
+private function trataTextoCSV($txt)
+{
+    // Substitui \" por "
+    $txt = str_replace('\"', '"', $txt);
 
+    // Aqui você pode aplicar outras limpezas adicionais
+    // ex: normalização de acentos, trims, etc.
+
+    return $txt;
+}
     private function trataTexto($txt)
 {
     // Limita a 255 caracteres
@@ -49,7 +58,7 @@ private function sanitizeCsv(string $file): string
 
     while (($row = fgetcsv($in, separator: ';')) !== false) {
         foreach ($row as &$field) {
-            $field = $this->trataTexto($field); // aplica a limpeza
+            $field = $this->trataTextoCSV($field); // aplica a limpeza
         }
         fputcsv($out, $row, ';');
     }
