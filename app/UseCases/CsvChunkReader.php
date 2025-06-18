@@ -56,17 +56,14 @@ private function sanitizeCsv(string $file): string
         throw new \RuntimeException("Erro ao abrir arquivos para sanitização");
     }
 
-    while (($row = fgetcsv($in, separator: ';')) !== false) {
-        foreach ($row as &$field) {
-            $field = $this->trataTextoCSV($field); // aplica a limpeza
-        }
-        fputcsv($out, $row, ';');
+    while (($line = fgets($in)) !== false) {
+        $line = $this->trataTextoCSV($line); // limpa a linha inteira como texto
+        fwrite($out, $line);
     }
 
     fclose($in);
     fclose($out);
     // @unlink($file); // opcional, remove o arquivo original
-    // Retorna o caminho do arquivo sanitizado
     return $sanitizedFile;
 }
 
