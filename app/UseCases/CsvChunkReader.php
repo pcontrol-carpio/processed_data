@@ -65,7 +65,7 @@ private function sanitizeCsv(string $file): string
 
     fclose($in);
     fclose($out);
-    @unlink($file); // opcional, remove o arquivo original
+    // @unlink($file); // opcional, remove o arquivo original
     // Retorna o caminho do arquivo sanitizado
     return $sanitizedFile;
 }
@@ -80,8 +80,8 @@ private function sanitizeCsv(string $file): string
    public function readCsv(string $file, $colunas, int $startChunk = 0): \Generator
 {
     $filename = basename($file);
-    $file = $this->sanitizeCsv($file);
-    $handle = fopen($file, 'r');
+    $sanitizedFile = $this->sanitizeCsv($file);
+    $handle = fopen($sanitizedFile, 'r');
     if ($handle === false) {
         throw new Exception('Erro ao abrir o arquivo');
     }
