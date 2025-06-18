@@ -206,7 +206,7 @@ CREATE TABLE `socio` (
   `data_entrada_sociedade` int(11) DEFAULT NULL,
   `pais` char(4) DEFAULT NULL,
   `representante_legal` varchar(15) DEFAULT NULL,
-  `nome_representante` varchar(50) DEFAULT NULL,
+  `nome_representante` varchar(150) DEFAULT NULL,
   `qualificacao_representante_legal` tinyint(4) DEFAULT NULL,
   `faixa_etaria` tinyint(1) DEFAULT NULL,
   KEY `qualificacao_socio` (`qualificacao_socio`),
