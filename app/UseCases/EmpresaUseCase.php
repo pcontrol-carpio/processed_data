@@ -35,7 +35,7 @@ class EmpresaUseCase extends CsvChunkReader
                         if ($key === 'ente_federativo') {
                             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
                             if (empty($value)) {
-                                $chunk[$key][$key] = '';
+                                $chunk[$key][$key] = (string) ' ';
                             }
                         }
 
