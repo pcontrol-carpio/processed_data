@@ -41,19 +41,26 @@ class EmpresaUseCase extends CsvChunkReader
 
                     }
                 }
-                $inicio = microtime(true);
+                 $inicio = microtime(true);
                 DB::table('empresa')->upsert($chunk, ['cnpj_basico'], $this->colunas);
                 $fim = microtime(true);
                 $tempo = $fim - $inicio;
                 echo '✅ OK - Chunk com ' . count($chunk) . ' em ' .basename($file). ' registros inserido.' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
 
+
             } catch (Exception $e) {
-                file_put_contents(
-                    '/tmp/erro.txt',
-                    print_r($e->getMessage(), true) . PHP_EOL . print_r($chunk, true),
-                    FILE_APPEND
-                );
-                dd($e); // Exibe o erro no terminal e para a execução
+               echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
+               echo "Testando a linha que deu erro" . PHP_EOL;
+               foreach ($chunk as $key => $linha) {
+                try{
+                    echo 'Linha: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+                    DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
+                } catch (Exception $e) {
+                    echo '❌ Erro ao inserir linha: ' . $e->getMessage() . PHP_EOL;
+                    exit;
+                }
+                file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($chunk, true));
+                continue; // Continua para o próximo chunk
             }
         }
             echo '✅ Todos os registros foram processados com sucesso.' . PHP_EOL;
