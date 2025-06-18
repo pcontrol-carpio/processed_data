@@ -35,6 +35,8 @@ class SimplesUseCase extends CsvChunkReader
             }
         }
 
+        return true;
+
     }
 
 }

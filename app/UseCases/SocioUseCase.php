@@ -48,6 +48,7 @@ class SocioUseCase extends CsvChunkReader
                     continue; // Continua para o próximo chunk
                 }
             }
+            return true; // Retorna true após processar todos os chunks
         }
 
     }
