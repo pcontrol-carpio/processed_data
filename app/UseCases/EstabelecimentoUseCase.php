@@ -135,8 +135,8 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($chunk, true));
                 return false;
             }
-            return true;
         }
+            return true;
 
     }
 
