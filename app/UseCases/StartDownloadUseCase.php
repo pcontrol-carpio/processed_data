@@ -2,10 +2,12 @@
 namespace App\UseCases;
 
 use App\Exceptions\ArquivoImportadoException;
+use App\Utils\FileCleaner;
 use DB;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Nette\Utils\FileSystem;
 use ZipArchive;
 
 class StartDownloadUseCase
@@ -42,21 +44,7 @@ class StartDownloadUseCase
     private function download($file)
     {
 
-         $files = glob('/tmp/*.txt');
-        $filesCleaned = glob('/tmp/cleaned*');
-        $dirs  = glob('/tmp/unzip*', GLOB_ONLYDIR);
-
-        foreach ($files as $file) {
-            @unlink($file);
-        }
-        foreach ($filesCleaned as $file) {
-            @unlink($file);
-        }
-
-        foreach ($dirs as $dir) {
-            exec("rm -rf " . escapeshellarg($dir));
-        }
-
+        FileCleaner::cleanTemporaryFiles();
         $name = basename($file);
 
         $zipPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $name;

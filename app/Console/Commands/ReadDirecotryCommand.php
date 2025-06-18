@@ -3,6 +3,7 @@ namespace App\Console\Commands;
 
 use App\Exceptions\ArquivoImportadoException;
 use App\Http\Controllers\DirectoryController;
+use App\Utils\FileCleaner;
 use Exception;
 use Illuminate\Console\Command;
 
@@ -33,20 +34,7 @@ class ReadDirecotryCommand extends Command
     {
 
         // Limpa arquivos .txt e diretórios que começam com unzip na pasta /tmp
-        $files = glob('/tmp/*.txt');
-        $filesCleaned = glob('/tmp/cleaned*');
-        $dirs  = glob('/tmp/unzip*', GLOB_ONLYDIR);
-
-        foreach ($files as $file) {
-            @unlink($file);
-        }
-        foreach ($filesCleaned as $file) {
-            @unlink($file);
-        }
-
-        foreach ($dirs as $dir) {
-            exec("rm -rf " . escapeshellarg($dir));
-        }
+        FileCleaner::cleanTemporaryFiles();
         $url = env('URL_BASE');
 
         $current_directory = $this->directoryController->findDirectory($url);
