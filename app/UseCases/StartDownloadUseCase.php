@@ -42,6 +42,21 @@ class StartDownloadUseCase
     private function download($file)
     {
 
+         $files = glob('/tmp/*.txt');
+        $filesCleaned = glob('/tmp/cleaned*');
+        $dirs  = glob('/tmp/unzip*', GLOB_ONLYDIR);
+
+        foreach ($files as $file) {
+            @unlink($file);
+        }
+        foreach ($filesCleaned as $file) {
+            @unlink($file);
+        }
+
+        foreach ($dirs as $dir) {
+            exec("rm -rf " . escapeshellarg($dir));
+        }
+
         $name = basename($file);
 
         $zipPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $name;
