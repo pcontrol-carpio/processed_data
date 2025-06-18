@@ -34,9 +34,13 @@ class ReadDirecotryCommand extends Command
 
         // Limpa arquivos .txt e diretórios que começam com unzip na pasta /tmp
         $files = glob('/tmp/*.txt');
+        $filesCleaned = glob('/tmp/cleaned*');
         $dirs  = glob('/tmp/unzip*', GLOB_ONLYDIR);
 
         foreach ($files as $file) {
+            @unlink($file);
+        }
+        foreach ($filesCleaned as $file) {
             @unlink($file);
         }
 
