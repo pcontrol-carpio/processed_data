@@ -31,6 +31,18 @@ class ReadDirecotryCommand extends Command
      */
     public function handle()
     {
+
+        // Limpa arquivos .txt e diretórios que começam com unzip na pasta /tmp
+        $files = glob('/tmp/*.txt');
+        $dirs  = glob('/tmp/unzip*', GLOB_ONLYDIR);
+
+        foreach ($files as $file) {
+            @unlink($file);
+        }
+
+        foreach ($dirs as $dir) {
+            exec("rm -rf " . escapeshellarg($dir));
+        }
         $url = env('URL_BASE');
 
         $current_directory = $this->directoryController->findDirectory($url);
@@ -44,8 +56,7 @@ class ReadDirecotryCommand extends Command
             $processeds    = array();
             foreach ($listDirectory as $type => $files) {
 
-                $myFiles = array_reverse (collect($files)->toArray());
-
+                $myFiles = array_reverse(collect($files)->toArray());
 
                 $this->info("Iniciando download dos arquivos da pasta {$type}");
                 foreach ($myFiles as $file) {
