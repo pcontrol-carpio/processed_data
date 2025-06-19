@@ -147,7 +147,7 @@ CREATE TABLE `estabelecimento` (
   `tipo_logradouro` varchar(50) DEFAULT NULL,
   `logradouro` varchar(50) DEFAULT NULL,
   `numero` varchar(6) DEFAULT NULL,
-  `complemento` varchar(50) DEFAULT NULL,
+  `complemento` varchar(150) DEFAULT NULL,
   `bairro` varchar(50) DEFAULT NULL,
   `cep` varchar(10) DEFAULT NULL,
   `uf` varchar(2) DEFAULT NULL,
