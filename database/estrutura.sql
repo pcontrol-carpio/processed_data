@@ -145,7 +145,7 @@ CREATE TABLE `estabelecimento` (
   `cnae_fiscal_principal` varchar(10) DEFAULT NULL,
   `cnae_fiscal_secundaria` longtext DEFAULT NULL,
   `tipo_logradouro` varchar(50) DEFAULT NULL,
-  `logradouro` varchar(50) DEFAULT NULL,
+  `logradouro` varchar(150) DEFAULT NULL,
   `numero` varchar(6) DEFAULT NULL,
   `complemento` varchar(150) DEFAULT NULL,
   `bairro` varchar(50) DEFAULT NULL,
