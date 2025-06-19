@@ -24,4 +24,6 @@ class FileCleaner
             exec('rm -rf ' . escapeshellarg($dir));
         }
     }
+
+
 }

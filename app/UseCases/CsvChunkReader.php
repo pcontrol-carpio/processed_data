@@ -63,7 +63,7 @@ private function sanitizeCsv(string $file): string
 
     fclose($in);
     fclose($out);
-    // @unlink($file); // opcional, remove o arquivo original
+    @unlink($file); // opcional, remove o arquivo original
     return $sanitizedFile;
 }
 
