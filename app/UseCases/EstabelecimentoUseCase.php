@@ -107,7 +107,6 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 foreach ($chunk as &$linha) {
                     $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                     // Visualização: Mostra cada linha que será inserida/atualizada
-                    echo 'Upserting: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
                     // Verifica se a empresa existe, se não existir, pula para a próxima linha
                     $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
                     if (empty($linha['empresa_id'])) {
@@ -129,9 +128,10 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     }
 
                 }
-                unset($linha);
 
             } catch (Exception $e) {
+
+                dd($e);
                 file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($chunk, true));
                 return false;
             }
