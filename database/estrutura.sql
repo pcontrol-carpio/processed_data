@@ -158,7 +158,7 @@ CREATE TABLE `estabelecimento` (
   `telefone2` varchar(10) DEFAULT NULL,
   `ddd_fax` varchar(10) DEFAULT NULL,
   `fax` varchar(10) DEFAULT NULL,
-  `correio_eletronico` varchar(50) DEFAULT NULL,
+  `correio_eletronico` varchar(150) DEFAULT NULL,
   `situacao_especial` varchar(25) DEFAULT NULL,
   `data_situacao_especial` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
