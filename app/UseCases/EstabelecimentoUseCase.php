@@ -117,6 +117,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
             try {
 
                 foreach ($chunk as &$linha) {
+                    $inicio = microtime(true);
                     $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                     $simples = $this->pegarSimples($linha['cnpj_basico']);
                     // Visualização: Mostra cada linha que será inserida/atualizada
@@ -132,14 +133,18 @@ class EstabelecimentoUseCase extends CsvChunkReader
                         $linha['nome_fantasia'] = $razaoSocial;
                     }
                     DB::table('estabelecimento')->upsert([$linha], ['cnpj_basico'], $this->colunas);
-                    echo '✅ OK - registros inserido.' . PHP_EOL;
                     $registro          = DB::table('estabelecimento')->where('cnpj_basico', $linha['cnpj_basico'])->first();
                     $idEstabelecimento = $registro->id ?? null;
                     if ($idEstabelecimento) {
                         $this->popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha);
                         echo '✅ Base populada com sucesso.' . PHP_EOL;
+                    }else{
+                        echo '❌ Erro ao inserir estabelecimento: ' . $linha['cnpj_basico'] . PHP_EOL;
+                       exit;
                     }
-
+                    $fim   = microtime(true);
+                    $tempo = $fim - $inicio;
+                    echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
                 }
 
             } catch (Exception $e) {
