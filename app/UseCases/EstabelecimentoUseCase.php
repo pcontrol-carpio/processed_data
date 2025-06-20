@@ -121,7 +121,16 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                     $simples = $this->pegarSimples($linha['cnpj_basico']);
                     if(empty($simples)){
-                        dd($linha);
+                        $simples = [
+                            'opcao_pelo_simples' => 'N',
+                            'data_opcao_pelo_simples' => null,
+                            'data_exclusao_simples' => null,
+                            'opcao_pelo_mei' => 'N',
+                            'data_opcao_mei' => null,
+                            'data_exclusao_mei' => null,
+                        ];
+                    }else{
+                        dd($simples);
                     }
                     // Visualização: Mostra cada linha que será inserida/atualizada
                     // Verifica se a empresa existe, se não existir, pula para a próxima linha
