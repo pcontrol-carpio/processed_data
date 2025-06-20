@@ -53,7 +53,17 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 ->first())->toArray();
     }
 
-    private function popularTabelaBase($idEstabelecimento, $empresa, $linha)
+
+     private function pegarSimples($baseCnpj)
+    {
+        return collect(DB::table('simples')
+                ->where('cnpj_basico', $baseCnpj)
+                ->first())->toArray();
+    }
+
+
+
+    private function popularTabelaBase($idEstabelecimento, $empresa,  $simples , $linha)
     {
        $capital_social = (float)$empresa['capital_social'];
         $natureza_juridica = (int)$empresa['natureza_juridica'];
@@ -79,8 +89,8 @@ class EstabelecimentoUseCase extends CsvChunkReader
             'bairro' => $linha['bairro'], //ok
             'data_inicio_atividade' => $this->formatarData($linha['data_inicio_atividade']), //ok
             'matriz' => $matriz_filial,
-            //'simples' => $linha['simples'], //ok
-            // 'mei' => $linha['mei'], //ok
+            'simples' => $simples['opcao_pelo_simples'], //ok
+            'mei' => $simples['opcao_pelo_mei'], //ok
             'situacao_cadastral' => $situacao_cadastral,
             'data_situacao_cadastral' => $this->formatarData($linha['data_situacao_cadastral']), //ok
             'motivo_situacao_cadastral' => $motivo_situacao_cadastral,
@@ -106,6 +116,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
                 foreach ($chunk as &$linha) {
                     $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
+                    $simples = $this->pegarSimples($linha['cnpj_basico']);
                     // Visualização: Mostra cada linha que será inserida/atualizada
                     // Verifica se a empresa existe, se não existir, pula para a próxima linha
                     $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
@@ -123,7 +134,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     $registro          = DB::table('estabelecimento')->where('cnpj_basico', $linha['cnpj_basico'])->first();
                     $idEstabelecimento = $registro->id ?? null;
                     if ($idEstabelecimento) {
-                        $this->popularTabelaBase($idEstabelecimento, $empresa, $linha);
+                        $this->popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha);
                         echo '✅ Base populada com sucesso.' . PHP_EOL;
                     }
 
