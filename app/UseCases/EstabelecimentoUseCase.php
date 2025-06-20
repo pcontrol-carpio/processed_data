@@ -129,8 +129,6 @@ class EstabelecimentoUseCase extends CsvChunkReader
                             'data_opcao_mei' => null,
                             'data_exclusao_mei' => null,
                         ];
-                    }else{
-                        dd($simples);
                     }
                     // Visualização: Mostra cada linha que será inserida/atualizada
                     // Verifica se a empresa existe, se não existir, pula para a próxima linha
