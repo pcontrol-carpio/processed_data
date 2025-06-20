@@ -122,9 +122,9 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
                     foreach ($chunkInsert as &$linha) {
                         $empresa             = $this->pegarEmpresa($linha['cnpj_basico']);
-                        if(!isset($empresa['razao_social'])){
-
-                            dd($linha,$empresa);
+                        if(empty($empresa)){
+                            echo "❌ Empresa não encontrada: {$linha['cnpj_basico']}".PHP_EOL;
+                            continue;
                         }
                         $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
                         $linha['cnpj']       = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
