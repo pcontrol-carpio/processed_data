@@ -89,8 +89,8 @@ class EstabelecimentoUseCase extends CsvChunkReader
             'bairro' => $linha['bairro'], //ok
             'data_inicio_atividade' => $this->formatarData($linha['data_inicio_atividade']), //ok
             'matriz' => $matriz_filial,
-            'simples' => $simples['opcao_pelo_simples'], //ok
-            'mei' => $simples['opcao_pelo_mei'], //ok
+            'simples' =>( $simples['opcao_pelo_simples'] == 'S')? 1 : 0, //ok
+            'mei' => ($simples['opcao_pelo_mei'] == 'S')? 1 : 0, //ok
             'situacao_cadastral' => $situacao_cadastral,
             'data_situacao_cadastral' => $this->formatarData($linha['data_situacao_cadastral']), //ok
             'motivo_situacao_cadastral' => $motivo_situacao_cadastral,
