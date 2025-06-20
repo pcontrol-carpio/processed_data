@@ -163,7 +163,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
                 } catch (Exception $e) {
 
-                    file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($chunk, true));
+                    file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($chunkInsert, true));
                     dd($e);
 
                     return false;
