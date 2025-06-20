@@ -118,6 +118,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
             foreach (array_chunk($chunk, $chunkSize) as $chunkInsert) {
                 try {
+                    $inicio = microtime(true);
 
                     foreach ($chunkInsert as &$linha) {
                         $empresa             = $this->pegarEmpresa($linha['cnpj_basico']);
@@ -130,7 +131,9 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     }
 
                     DB::table('estabelecimento')->upsert($chunkInsert, ['cnpj_basico'], $this->colunas);
-
+                    $fim   = microtime(true);
+                    $tempo = $fim - $inicio;
+                    echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
                     // $simples = $this->pegarSimples($linha['cnpj_basico']);
                     // if(empty($simples)){
                     //     $simples = [
