@@ -48,9 +48,9 @@ class EstabelecimentoUseCase extends CsvChunkReader
     }
     private function pegarEmpresa($baseCnpj)
     {
-        return collect(DB::table('empresa')
-                ->where('cnpj_basico', $baseCnpj)
-                ->first())->toArray();
+        return (array) DB::table('empresa')
+            ->where('cnpj_basico', $baseCnpj)
+            ->first();
     }
 
     private function pegarSimples($baseCnpj)
@@ -119,10 +119,18 @@ class EstabelecimentoUseCase extends CsvChunkReader
             foreach (array_chunk($chunk, $chunkSize) as $chunkInsert) {
                 try {
 
+                    foreach ($chunkInsert as &$linha) {
+                        $empresa             = $this->pegarEmpresa($linha['cnpj_basico']);
+                        $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
+                        $linha['cnpj']       = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
+                        $razaoSocial         = $empresa !== null ? $empresa['razao_social'] : null;
+                        if (empty($linha['nome_fantasia'])) {
+                            $linha['nome_fantasia'] = $razaoSocial;
+                        }
+                    }
+
                     DB::table('estabelecimento')->upsert($chunkInsert, ['cnpj_basico'], $this->colunas);
-                    // foreach ($chunk as &$linha) {
-                    // $inicio = microtime(true);
-                    // $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
+
                     // $simples = $this->pegarSimples($linha['cnpj_basico']);
                     // if(empty($simples)){
                     //     $simples = [
