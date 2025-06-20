@@ -111,7 +111,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
         $progress   = DB::table('csv_progress')->where('filename', basename($file))->first();
         $startChunk = $progress->last_chunk ?? 0;
 
-        $maxPlaceholders = 65535;
+        $maxPlaceholders = 40000;
         $colunas         = count($this->colunas);
         $chunkSize       = floor($maxPlaceholders / $colunas);
         foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
@@ -123,7 +123,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     foreach ($chunkInsert as &$linha) {
                         $empresa             = $this->pegarEmpresa($linha['cnpj_basico']);
                         if(empty($empresa)){
-                            echo "❌ Empresa não encontrada: {$linha['cnpj_basico']}".PHP_EOL;
+                            echo PHP_EOL."❌ Empresa não encontrada: {$linha['cnpj_basico']}".PHP_EOL;
                             continue;
                         }
                         $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
