@@ -58,8 +58,7 @@ class EmpresaUseCase extends CsvChunkReader
                         echo '❌ Erro ao inserir linha: ' . $e->getMessage() . PHP_EOL;
                         exit;
                     }
-                    file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($chunk, true));
-                    continue; // Continua para o próximo chunk
+
                 }
             }
             echo '✅ Todos os registros foram processados com sucesso.' . PHP_EOL;

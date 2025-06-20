@@ -97,11 +97,10 @@ class EstabelecimentoUseCase extends CsvChunkReader
         try {
             DB::table('base')->upsert([$dados], ['cnpj'], $keys);
         } catch (Exception $e) {
+            file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($dados, true));
 
             dd($e);exit;
 
-            file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($dados, true));
-            return false;
         }
 
     }
@@ -121,9 +120,9 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     $inicio = microtime(true);
 
                     foreach ($chunkInsert as &$linha) {
-                        $empresa             = $this->pegarEmpresa($linha['cnpj_basico']);
-                        if(empty($empresa)){
-                            echo PHP_EOL."❌ Empresa não encontrada: {$linha['cnpj_basico']}".PHP_EOL;
+                        $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
+                        if (empty($empresa)) {
+                            echo PHP_EOL . "❌ Empresa não encontrada: {$linha['cnpj_basico']}" . PHP_EOL;
                             continue;
                         }
                         $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
@@ -178,10 +177,23 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
                 } catch (Exception $e) {
 
+                    echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
+                    echo "Testando a linha que deu erro" . PHP_EOL;
+                    foreach ($chunkInsert as $key => $linhaInsert) {
+                        try {
+                            echo 'Linha: ' . json_encode($linhaInsert, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+                            DB::table('estabelecimento')->upsert([$linhaInsert], ['cnpj_basico'], $this->colunas);
+                        } catch (Exception $e) {
+                            echo '❌ Erro ao inserir linha: ' . $e->getMessage() . PHP_EOL;
+                            exit;
+                        }
+
+                    }
+
                     file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($chunkInsert, true));
                     dd($e);
 
-                    return false;
+                    return true;
                 }
             }
         }
