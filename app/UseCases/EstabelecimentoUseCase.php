@@ -120,6 +120,9 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     $inicio = microtime(true);
                     $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                     $simples = $this->pegarSimples($linha['cnpj_basico']);
+                    if(empty($simples)){
+                        dd($linha);
+                    }
                     // Visualização: Mostra cada linha que será inserida/atualizada
                     // Verifica se a empresa existe, se não existir, pula para a próxima linha
                     $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
