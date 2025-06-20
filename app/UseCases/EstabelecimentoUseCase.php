@@ -101,6 +101,8 @@ class EstabelecimentoUseCase extends CsvChunkReader
         DB::table('base')->upsert([$dados],['cnpj'],  $keys);
         } catch (Exception $e) {
 
+            dd($e);exit;
+
             file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($dados, true));
             return false;
         }
