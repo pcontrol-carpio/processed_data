@@ -49,15 +49,15 @@ class EmpresaUseCase extends CsvChunkReader
 
             } catch (Exception $e) {
                 echo '❌ Erro ao processar chunk: ' . PHP_EOL;
-                file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
-                exit;
 
                 foreach ($chunk as $key => $linha) {
                     try {
-                        echo 'Linha: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+                        echo 'Linha: ' . $key . 'processando ' . PHP_EOL;
                         DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
+                        echo '✅ OK - Linha inserida com sucesso.' . PHP_EOL;
                     } catch (Exception $e) {
-                        echo '❌ Erro ao inserir linha: ' . $e->getMessage() . PHP_EOL;
+                        echo '❌ Erro ao inserir linha:  ' .$key . PHP_EOL;
+                        file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                         exit;
                     }
 
