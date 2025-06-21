@@ -57,9 +57,7 @@ class ReadDirecotryCommand extends Command
                     $this->warn("Iniciando download do arquivo {$file}");
                     try {
                         $file_csv = $this->directoryController->downloadFile($file, $current_directory, $url);
-
                         $processed = $this->directoryController->processFile($file_csv, $type, $file, $current_directory);
-                        @unlink($file_csv);
                         if ($processed) {
                             $processeds[$file] = true;
 
