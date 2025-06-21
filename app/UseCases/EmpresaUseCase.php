@@ -41,34 +41,30 @@ class EmpresaUseCase extends CsvChunkReader
 
                     }
                 }
-                $inicio = microtime(true);
-                DB::table('empresa')->upsert($chunk, ['cnpj_basico'], $this->colunas);
-                $fim   = microtime(true);
-                $tempo = $fim - $inicio;
-                echo '✅ OK - Chunk com ' . count($chunk) . ' em ' . basename($file) . ' registros inserido.' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
 
-            } catch (Exception $e) {
-                echo '❌ Erro ao processar chunk: ' . PHP_EOL;
-                file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                 foreach ($chunk as $key => $linha) {
                     try {
                         echo 'Linha: ' . $key . 'processando ' . PHP_EOL;
                         DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
                         echo '✅ OK - Linha inserida com sucesso.' . PHP_EOL;
                     } catch (Exception $e) {
-                        echo '❌ Erro ao inserir linha:  ' .$key . PHP_EOL;
+                        echo '❌ Erro ao inserir linha:  ' . $key . PHP_EOL;
                         file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                         exit;
                     }
 
                 }
+
+            } catch (Exception $e) {
+                echo '❌ Erro ao inserir linha:  ' . $key . PHP_EOL;
+                file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
+                exit;
             }
-
+            echo '✅ Todos os registros foram processados com sucesso.' . PHP_EOL;
+            // Retorna true para indicar que o processamento foi concluído com sucesso
+            echo '✅ Processamento concluído.' . PHP_EOL;
+            exit;
+            return true;
         }
-        echo '✅ Todos os registros foram processados com sucesso.' . PHP_EOL;
-        // Retorna true para indicar que o processamento foi concluído com sucesso
-        echo '✅ Processamento concluído.' . PHP_EOL;
-        return true;
     }
-
 }
