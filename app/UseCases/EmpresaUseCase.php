@@ -48,7 +48,8 @@ class EmpresaUseCase extends CsvChunkReader
                 echo '✅ OK - Chunk com ' . count($chunk) . ' em ' . basename($file) . ' registros inserido.' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
 
             } catch (Exception $e) {
-                echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
+                echo '❌ Erro ao processar chunk: ' . PHP_EOL;
+                file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                 exit;
 
                 foreach ($chunk as $key => $linha) {
