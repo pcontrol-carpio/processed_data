@@ -61,12 +61,12 @@ class EmpresaUseCase extends CsvChunkReader
 
                 }
             }
-            echo '✅ Todos os registros foram processados com sucesso.' . PHP_EOL;
-            // Retorna true para indicar que o processamento foi concluído com sucesso
-            echo '✅ Processamento concluído.' . PHP_EOL;
-            return true;
 
         }
+        echo '✅ Todos os registros foram processados com sucesso.' . PHP_EOL;
+        // Retorna true para indicar que o processamento foi concluído com sucesso
+        echo '✅ Processamento concluído.' . PHP_EOL;
+        return true;
     }
 
 }
