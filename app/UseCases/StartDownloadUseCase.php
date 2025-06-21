@@ -92,7 +92,7 @@ class StartDownloadUseCase
         $extractDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('unzip_', true);
         mkdir($extractDir);
 
-        $zip = new \ZipArchive;
+        $zip = new ZipArchive;
         if ($zip->open($zipPath) === true) {
             $zip->extractTo($extractDir);
             $zip->close();

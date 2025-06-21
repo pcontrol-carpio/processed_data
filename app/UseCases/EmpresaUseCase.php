@@ -20,6 +20,7 @@ class EmpresaUseCase extends CsvChunkReader
     {
         $progress   = DB::table('csv_progress')->where('filename', basename($file))->first();
         $startChunk = $progress->last_chunk ?? 0;
+        echo "Iniciando processamento do arquivo: {$file}".PHP_EOL;
         foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
             try {
                 // Visualização: Mostra cada linha que será inserida/atualizada
@@ -44,9 +45,8 @@ class EmpresaUseCase extends CsvChunkReader
 
                 foreach ($chunk as $key => $linha) {
 
-                    echo 'Linha: ' . $key . 'processando ' . PHP_EOL;
+
                     DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
-                    echo '✅ OK - Linha inserida com sucesso.' . PHP_EOL;
 
                 }
 

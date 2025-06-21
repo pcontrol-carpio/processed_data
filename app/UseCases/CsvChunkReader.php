@@ -130,7 +130,6 @@ private function sanitizeCsv(string $file): string
     }
 
     fclose($handle);
-    unlink($file); // opcional
 }
 
 
