@@ -118,7 +118,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
             foreach (array_chunk($chunk, $chunkSize) as $chunkInsert) {
                 try {
                     $inicio = microtime(true);
-
+                    $newChunk = [];
                     foreach ($chunkInsert as &$linha) {
                         $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                         if (empty($empresa)) {
@@ -131,9 +131,10 @@ class EstabelecimentoUseCase extends CsvChunkReader
                         if (empty($linha['nome_fantasia'])) {
                             $linha['nome_fantasia'] = $razaoSocial;
                         }
+                        $newChunk[] = $linha;
                     }
 
-                    DB::table('estabelecimento')->upsert($chunkInsert, ['cnpj_basico'], $this->colunas);
+                    DB::table('estabelecimento')->upsert($newChunk, ['cnpj_basico'], $this->colunas);
                     $fim   = microtime(true);
                     $tempo = $fim - $inicio;
                     echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
@@ -176,12 +177,11 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     // }
 
                 } catch (Exception $e) {
-
                     echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
                     echo "Testando a linha que deu erro" . PHP_EOL;
-                    foreach ($chunkInsert as $key => $linhaInsert) {
+                    foreach ($newChunk as $key => $linhaInsert) {
                         try {
-                            echo 'Linha: ' . json_encode($linhaInsert, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+                            echo '✅ Linha: ' . json_encode($linhaInsert, JSON_UNESCAPED_UNICODE) . PHP_EOL.PHP_EOL;
                             DB::table('estabelecimento')->upsert([$linhaInsert], ['cnpj_basico'], $this->colunas);
                         } catch (Exception $e) {
                             echo '❌ Erro ao inserir linha: ' . $e->getMessage() . PHP_EOL;
@@ -190,8 +190,6 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
                     }
 
-                    file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($chunkInsert, true));
-                    dd($e);
 
                     return true;
                 }
