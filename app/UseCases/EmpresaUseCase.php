@@ -49,7 +49,8 @@ class EmpresaUseCase extends CsvChunkReader
 
             } catch (Exception $e) {
                 echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
-                echo "Testando a linha que deu erro" . PHP_EOL;
+                exit;
+
                 foreach ($chunk as $key => $linha) {
                     try {
                         echo 'Linha: ' . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
