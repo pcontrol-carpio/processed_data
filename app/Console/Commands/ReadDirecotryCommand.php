@@ -69,6 +69,8 @@ class ReadDirecotryCommand extends Command
                         $this->error("Arquivo {$file} já foi processado anteriormente");
                         $processeds[$file] = true;
                     } catch (Exception $e) {
+
+                        dd($e);
                         $this->error($e->getMessage());
                     }
                 }
