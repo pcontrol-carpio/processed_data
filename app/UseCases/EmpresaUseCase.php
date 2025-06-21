@@ -48,9 +48,11 @@ class EmpresaUseCase extends CsvChunkReader
                 echo '✅ OK - Chunk com ' . count($chunk) . ' em ' . basename($file) . ' registros inserido.' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
 
             } catch (Exception $e) {
+                echo '❌ Erro ao processar chunk: ' . PHP_EOL;
+                file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                 foreach ($chunk as $key => $linha) {
                     try {
-                        echo 'Linha: ' . $key . ' processando ' . PHP_EOL;
+                        echo 'Linha: ' . $key . 'processando ' . PHP_EOL;
                         DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
                         echo '✅ OK - Linha inserida com sucesso.' . PHP_EOL;
                     } catch (Exception $e) {
