@@ -24,8 +24,8 @@ class EmpresaUseCase extends CsvChunkReader
         foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
             try {
                 // Visualização: Mostra cada linha que será inserida/atualizada
-                foreach ($chunk as $key => $linha) {
-                    foreach ($linha as $key => $value) {
+                foreach ($chunk as $key => &$linha) {
+                    foreach ($linha as $key => &$value) {
                         if ($key === 'porte') {
                             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
                             if (empty($value)) {
