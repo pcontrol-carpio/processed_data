@@ -20,28 +20,29 @@ class EmpresaUseCase extends CsvChunkReader
     {
         $progress   = DB::table('csv_progress')->where('filename', basename($file))->first();
         $startChunk = $progress->last_chunk ?? 0;
+        echo PHP_EOL;
         echo "Iniciando processamento do arquivo: {$file}".PHP_EOL;
         foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
             try {
                 // Visualização: Mostra cada linha que será inserida/atualizada
-                foreach ($chunk as $key => &$linha) {
-                    foreach ($linha as $key => &$value) {
-                        if ($key === 'porte') {
-                            // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
-                            if (empty($value)) {
-                                $chunk[$key][$key] = null;
-                            }
-                        }
+                // foreach ($chunk as $key => &$linha) {
+                //     foreach ($linha as $key => &$value) {
+                //         if ($key === 'porte') {
+                //             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
+                //             if (empty($value)) {
+                //                 $chunk[$key][$key] = null;
+                //             }
+                //         }
 
-                        if ($key === 'ente_federativo') {
-                            // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
-                            if (empty($value)) {
-                                $chunk[$key][$key] = (string) '';
-                            }
-                        }
+                //         if ($key === 'ente_federativo') {
+                //             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
+                //             if (empty($value)) {
+                //                 $chunk[$key][$key] = (string) '';
+                //             }
+                //         }
 
-                    }
-                }
+                //     }
+                // }
 
                 foreach ($chunk as $key => $linha) {
 
