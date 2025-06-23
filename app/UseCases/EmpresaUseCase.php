@@ -46,12 +46,22 @@ class EmpresaUseCase extends CsvChunkReader
                 foreach ($chunk as $key => $linha) {
 
 
+                    if(empty($linha['porte'])){
+                        $linha['porte'] = null;
+
+                    }
+                    if(empty($linha['ente_federativo'])){
+                        $linha['ente_federativo'] = null;
+
+                    }
+
                     DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
 
                 }
 
             } catch (Exception $e) {
                 echo '❌ Erro ao inserir linha:  ' . $key . PHP_EOL;
+                echo json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
                 file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                 exit;
             }
