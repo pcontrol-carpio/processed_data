@@ -139,7 +139,7 @@ CREATE TABLE `estabelecimento` (
   `situacao_cadastral` varchar(10) DEFAULT NULL,
   `data_situacao_cadastral` varchar(10) DEFAULT NULL,
   `motivo_situacao_cadastral` varchar(2) DEFAULT NULL,
-  `nome_cidade_exterior` varchar(50) DEFAULT NULL,
+  `nome_cidade_exterior` varchar(150) DEFAULT NULL,
   `pais` varchar(3) DEFAULT NULL,
   `data_inicio_atividade` varchar(10) DEFAULT NULL,
   `cnae_fiscal_principal` varchar(10) DEFAULT NULL,
