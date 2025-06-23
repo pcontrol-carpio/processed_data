@@ -27,7 +27,6 @@ class EmpresaUseCase extends CsvChunkReader
                 // Visualização: Mostra cada linha que será inserida/atualizada
                 foreach ($chunk as $key => &$linha) {
 
-                    dd($linha);
                     foreach ($linha as $key => &$value) {
                         if ($key === 'porte') {
                             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
