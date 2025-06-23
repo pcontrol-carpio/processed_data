@@ -55,9 +55,10 @@ class EmpresaUseCase extends CsvChunkReader
 
                     }
 
-                    dd($linha);exit;
 
                     DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
+                    dd($linha);exit;
+
 
                 }
 
