@@ -96,9 +96,11 @@ private function sanitizeCsv(string $file): string
 
     // Pular linhas já processadas
     $linesToSkip = $startChunk * $this->chunkSize;
+    if($linesToSkip > 0){
     for ($i = 0; $i < $linesToSkip && !feof($handle); $i++) {
         fgets($handle);
     }
+}
 
     $currentChunk = $startChunk;
 $totalLines = 0;
