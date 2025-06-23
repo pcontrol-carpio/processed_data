@@ -70,7 +70,6 @@ class StartDownloadUseCase
         $client = new Client();
         try {
 
-            dd($file);
             $client->request('GET', $file, [
                 'sink'     => $zipPath,
                 'progress' => function (
