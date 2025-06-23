@@ -40,7 +40,7 @@ class EmpresaUseCase extends CsvChunkReader
                                 $linha[$key] = (string) '';
                             }
                         } else {
-                            $linha[$key] = (string) $value;
+                            // $linha[$key] = (string) $value;
                         }
 
                     }
