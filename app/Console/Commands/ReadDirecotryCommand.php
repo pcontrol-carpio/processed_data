@@ -48,7 +48,7 @@ class ReadDirecotryCommand extends Command
             $processeds    = array();
             foreach ($listDirectory as $type => $files) {
 
-                $myFiles = array_reverse(collect($files)->toArray());
+                $myFiles = (collect($files)->toArray());
 
                 $this->info("Iniciando download dos arquivos da pasta {$type}");
                 foreach ($myFiles as $file) {
