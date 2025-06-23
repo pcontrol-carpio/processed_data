@@ -45,13 +45,12 @@ class ReadDirecotryCommand extends Command
         $folder = $current_directory->pasta;
         if (! empty($current_directory)) {
 
-            dd($url . $folder);
             $listDirectory = $this->directoryController->listDirectory($url . $folder);
             $processeds    = array();
             foreach ($listDirectory as $type => $files) {
 
                 $myFiles = (collect($files)->toArray());
-
+                dd($myFiles);
                 $this->info("Iniciando download dos arquivos da pasta {$type}");
                 foreach ($myFiles as $file) {
                     $processeds[$file] = false;
