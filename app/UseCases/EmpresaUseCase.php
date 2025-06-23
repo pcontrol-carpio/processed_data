@@ -25,50 +25,58 @@ class EmpresaUseCase extends CsvChunkReader
         foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
             try {
                 // Visualização: Mostra cada linha que será inserida/atualizada
-                // foreach ($chunk as $key => &$linha) {
-                //     foreach ($linha as $key => &$value) {
-                //         if ($key === 'porte') {
-                //             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
-                //             if (empty($value)) {
-                //                 $chunk[$key][$key] = null;
-                //             }
-                //         }
+                foreach ($chunk as $key => &$linha) {
+                    foreach ($linha as $key => &$value) {
+                        if ($key === 'porte') {
+                            // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
+                            if (empty($value)) {
+                                $linha[$key] = null;
+                            }
+                        }
 
-                //         if ($key === 'ente_federativo') {
-                //             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
-                //             if (empty($value)) {
-                //                 $chunk[$key][$key] = (string) '';
-                //             }
-                //         }
-
-                //     }
-                // }
-
-                foreach ($chunk as $key => $linha) {
-
-
-                    if(empty($linha['porte'])){
-                        $linha['porte'] = null;
-
-                    }
-                    if(empty($linha['ente_federativo'])){
-                        $linha['ente_federativo'] = null;
+                        if ($key === 'ente_federativo') {
+                            // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
+                            if (empty($value)) {
+                                $linha[$key] = (string) '';
+                            }
+                        }
+                        else{
+                            $linha[$key] = (string) $value;
+                        }
 
                     }
 
-
-                    DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
-                    echo "✅ {$linha['cnpj_basico']} -  {$linha['razao_social']} -  Inserido com sucesso." . PHP_EOL;
-                    file_put_contents('/tmp/empresas.txt', "{$linha['cnpj_basico']} -  {$linha['razao_social']} -  Inserido com sucesso." . PHP_EOL,FILE_APPEND);
-
-
+                    DB::table('empresa')->upsert($chunk ['cnpj_basico'], $this->colunas);
+                    echo "Chunk inserido com sucesso".PHP_EOL;
                 }
+
 
             } catch (Exception $e) {
                 echo '❌ Erro ao inserir linha:  ' . $key . PHP_EOL;
                 echo json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
                 file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                 exit;
+
+
+                // foreach ($chunk as $key => $linha) {
+
+
+                //     if(empty($linha['porte'])){
+                //         $linha['porte'] = null;
+
+                //     }
+                //     if(empty($linha['ente_federativo'])){
+                //         $linha['ente_federativo'] = null;
+
+                //     }
+
+
+                //     DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
+                //     echo "✅ {$linha['cnpj_basico']} -  {$linha['razao_social']} -  Inserido com sucesso." . PHP_EOL;
+                //     file_put_contents('/tmp/empresas.txt', "{$linha['cnpj_basico']} -  {$linha['razao_social']} -  Inserido com sucesso." . PHP_EOL,FILE_APPEND);
+
+
+                // }
             }
 
         }
