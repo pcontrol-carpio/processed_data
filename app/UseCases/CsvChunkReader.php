@@ -101,7 +101,7 @@ private function sanitizeCsv(string $file): string
         fgets($handle);
     }
 }
-
+dd($linesToSkip);
     $currentChunk = $startChunk;
 $totalLines = 0;
     while (!feof($handle)) {
