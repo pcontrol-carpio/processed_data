@@ -101,7 +101,7 @@ private function sanitizeCsv(string $file): string
     }
 
     $currentChunk = $startChunk;
-
+$totalLines = 0;
     while (!feof($handle)) {
         $chunk = [];
         for ($i = 0; $i < $this->chunkSize && !feof($handle); $i++) {
@@ -109,6 +109,8 @@ private function sanitizeCsv(string $file): string
             if ($row === false || count($row) === 0) {
                 continue;
             }
+
+             $totalLines++; // Conta a linha válida
             try{
             $chunk[] = $this->processRow($row, $colunas);
             }catch(\InvalidArgumentException $e) {
@@ -128,7 +130,7 @@ private function sanitizeCsv(string $file): string
             );
         }
     }
-
+    file_put_contents('/tmp/total_linhas.txt', "$file - $totalLines".PHP_EOL, FILE_APPEND);
     fclose($handle);
 }
 
