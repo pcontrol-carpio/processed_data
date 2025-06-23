@@ -46,10 +46,10 @@ class EmpresaUseCase extends CsvChunkReader
 
                     }
 
-                    DB::table('empresa')->upsert($chunk ['cnpj_basico'], $this->colunas);
-                    echo "Chunk inserido com sucesso".PHP_EOL;
-                }
 
+                }
+                 DB::table('empresa')->upsert($chunk ['cnpj_basico'], $this->colunas);
+                    echo "Chunk inserido com sucesso".PHP_EOL;
 
             } catch (Exception $e) {
                 echo '❌ Erro ao inserir linha:  ' . $key . PHP_EOL;
