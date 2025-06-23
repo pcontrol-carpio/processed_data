@@ -26,6 +26,8 @@ class EmpresaUseCase extends CsvChunkReader
             try {
                 // Visualização: Mostra cada linha que será inserida/atualizada
                 foreach ($chunk as $key => &$linha) {
+
+                    dd($linha);
                     foreach ($linha as $key => &$value) {
                         if ($key === 'porte') {
                             // Verifica se o valor é numérico e converte para inteiro, caso contrário, define como null
@@ -51,8 +53,7 @@ class EmpresaUseCase extends CsvChunkReader
                 echo "Chunk inserido com sucesso" . PHP_EOL;
 
             } catch (Exception $e) {
-                echo '❌ Erro ao inserir linha:  ' . $key . PHP_EOL;
-                echo json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+              dd($e);
                 file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                 exit;
 
