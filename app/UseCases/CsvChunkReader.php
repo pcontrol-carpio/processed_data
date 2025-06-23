@@ -101,11 +101,9 @@ abstract class CsvChunkReader
             $chunk = [];
             for ($i = 0; $i < $this->chunkSize && ! feof($handle); $i++) {
                 $row = fgetcsv($handle, separator: ';');
-                dd($row);
                 if ($row === false || count($row) === 0) {
                     continue;
                 }
-
                 $totalLines++; // Conta a linha válida
                 try {
 
