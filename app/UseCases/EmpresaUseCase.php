@@ -58,7 +58,8 @@ class EmpresaUseCase extends CsvChunkReader
 
 
                     DB::table('empresa')->upsert([$linha], ['cnpj_basico'], $this->colunas);
-                    dd($linha);exit;
+                    echo "✅ {$linha['cnpj_basico']} -  {$linha['razao_social']} -  Inserido com sucesso." . PHP_EOL;
+                    file_put_contents('/tmp/empresas.txt', "{$linha['cnpj_basico']} -  {$linha['razao_social']} -  Inserido com sucesso." . PHP_EOL,FILE_APPEND);
 
 
                 }
