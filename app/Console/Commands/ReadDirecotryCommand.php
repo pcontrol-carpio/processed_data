@@ -44,6 +44,8 @@ class ReadDirecotryCommand extends Command
         }
         $folder = $current_directory->pasta;
         if (! empty($current_directory)) {
+
+            dd($url . $folder);
             $listDirectory = $this->directoryController->listDirectory($url . $folder);
             $processeds    = array();
             foreach ($listDirectory as $type => $files) {
