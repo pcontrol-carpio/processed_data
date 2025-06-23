@@ -104,11 +104,10 @@ private function sanitizeCsv(string $file): string
 $totalLines = 0;
     while (!feof($handle)) {
         $chunk = [];
+        for ($i = 0; $i < $this->chunkSize && !feof($handle); $i++) {
             $row = fgetcsv($handle, separator: ';');
 
             dd($row);
-        for ($i = 0; $i < $this->chunkSize && !feof($handle); $i++) {
-
             if ($row === false || count($row) === 0) {
                 continue;
             }
