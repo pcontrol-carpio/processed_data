@@ -106,12 +106,16 @@ $totalLines = 0;
         $chunk = [];
         for ($i = 0; $i < $this->chunkSize && !feof($handle); $i++) {
             $row = fgetcsv($handle, separator: ';');
+
+            dd($row);
             if ($row === false || count($row) === 0) {
                 continue;
             }
 
              $totalLines++; // Conta a linha válida
             try{
+
+
             $chunk[] = $this->processRow($row, $colunas);
             }catch(\InvalidArgumentException $e) {
                 // Loga o erro e continua
