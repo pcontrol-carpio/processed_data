@@ -110,7 +110,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
         $progress   = DB::table('csv_progress')->where('filename', basename($file))->first();
         $startChunk = $progress->last_chunk ?? 0;
 
-        $maxPlaceholders = 40000;
+        $maxPlaceholders = 50000;
         $colunas         = count($this->colunas);
         $chunkSize       = floor($maxPlaceholders / $colunas);
         foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
