@@ -92,8 +92,8 @@ class EmpresaBaseUseCase
                     ->get();
 
                 $temMais = !$estabelecimentos->isEmpty();
-
-                foreach ($estabelecimentos as $estabelecimento) {
+                $total = $estabelecimentos->count();
+                foreach ($estabelecimentos as $idx =>  $estabelecimento) {
                     $linha   = (array) $estabelecimento;
                     $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                     if (empty($empresa)) {
@@ -130,14 +130,13 @@ class EmpresaBaseUseCase
                     $idEstabelecimento = $estabelecimento->id ?? null;
                     if ($idEstabelecimento) {
                         $this->popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha);
-                        echo '✅ Base populada com sucesso.' . PHP_EOL;
+                        echo "✅ Inserido {$linha['cnpj_basico']} dado {$idx} de {$total}" . PHP_EOL;
+                        flush();
                     } else {
                         echo '❌ Erro ao inserir estabelecimento: ' . $linha['cnpj_basico'] . PHP_EOL;
                         exit;
                     }
-                    $fim   = microtime(true);
-                    $tempo = $fim - $inicio;
-                    echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
+
                     $lastId = $estabelecimento->id;
                 }
 
