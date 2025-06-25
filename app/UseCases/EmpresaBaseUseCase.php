@@ -84,7 +84,7 @@ class EmpresaBaseUseCase
 
             while ($temMais) {
                 echo "Lendo estabelecimentos a partir do ID: " . $lastId . "..." . PHP_EOL;
-                $inicio = microtime(true);
+                $inicio           = microtime(true);
                 $estabelecimentos = DB::table('estabelecimento')
                     ->where('id', '>', $lastId)
                     ->orderBy('id')
@@ -92,7 +92,6 @@ class EmpresaBaseUseCase
                     ->get();
 
                 $temMais = $estabelecimentos->count() === $limit;
-
 
                 foreach ($estabelecimentos as $estabelecimento) {
                     $linha   = (array) $estabelecimento;
@@ -139,7 +138,7 @@ class EmpresaBaseUseCase
                     $fim   = microtime(true);
                     $tempo = $fim - $inicio;
                     echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
-
+                    $lastId = $estabelecimento->id;
                 }
 
             }
