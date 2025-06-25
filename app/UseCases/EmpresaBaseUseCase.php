@@ -78,8 +78,8 @@ class EmpresaBaseUseCase
         // Processa cada $estabelecimento
         try {
 
-            $limit   = 10000;
-            $lastId  = 0;
+            $limit   = 100000;
+            $lastId  = 8310000;
             $temMais = true;
 
             while ($temMais) {
