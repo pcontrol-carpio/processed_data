@@ -6,7 +6,7 @@ use Exception;
 
 class EmpresaBaseUseCase
 {
-    private const CHUNK_SIZE = 1000;
+    private const CHUNK_SIZE = 10000;
 
     private function formatarData($data)
     {
