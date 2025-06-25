@@ -77,16 +77,20 @@ class ReadDirecotryCommand extends Command
                 }
 
             }
-
+try{
+     $this->info('Iniciando o processo da tabela base');
+            $empresaBase = $this->empresaBaseUseCase;
+            $empresaBase();
+}catch(Exception $e){
+    dd($e);
+}
             if (($failed = array_search(false, $processeds, true)) !== false) {
                 echo "File '{$failed}' failed to process.";
             } else {
                 $this->directoryController->finishDirectory($current_directory);
             }
             $this->info("Todos os arquivos foram processados");
-            $this->info('Iniciando o processo da tabela base');
-            $empresaBase = $this->empresaBaseUseCase;
-            $empresaBase();
+
             $this->info("Processamento finalizado");
             $this->info("Resultados do processamento:");
             foreach ($processeds as $file => $processed) {
