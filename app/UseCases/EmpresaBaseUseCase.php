@@ -78,7 +78,7 @@ class EmpresaBaseUseCase
         // Processa cada $estabelecimento
         try {
             $inicio = microtime(true);
-            foreach (DB::table('estabelecimentos')->cursor() as $estabelecimento) {
+            foreach (DB::table('estabelecimento')->cursor() as $estabelecimento) {
                 $linha = (array)$estabelecimento;
                 $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                 if (empty($empresa)) {
