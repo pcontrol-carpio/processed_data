@@ -77,60 +77,77 @@ class EmpresaBaseUseCase
     {
         // Processa cada $estabelecimento
         try {
-            $inicio = microtime(true);
-            foreach (DB::table('estabelecimento')->cursor() as $estabelecimento) {
-                $linha = (array)$estabelecimento;
-                $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
-                if (empty($empresa)) {
-                    echo PHP_EOL . "❌ Empresa não encontrada: " . $linha['cnpj_basico'] . PHP_EOL . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
-                    continue;
-                }
-                $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
-                $linha['cnpj']       = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
-                $razaoSocial         = $empresa !== null ? $empresa['razao_social'] : null;
-                if (empty($linha['nome_fantasia'])) {
-                    $linha['nome_fantasia'] = $razaoSocial;
-                }
-                $simples = $this->pegarSimples($linha['cnpj_basico']);
-                if (empty($simples)) {
-                    $simples = [
-                        'opcao_pelo_simples'      => 'N',
-                        'data_opcao_pelo_simples' => null,
-                        'data_exclusao_simples'   => null,
-                        'opcao_pelo_mei'          => 'N',
-                        'data_opcao_mei'          => null,
-                        'data_exclusao_mei'       => null,
-                    ];
-                }
-                $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
-                if (empty($linha['empresa_id'])) {
-                    continue;
-                }
-                $linha['cnpj'] = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
 
-                $razaoSocial = $empresa !== null ? $empresa['razao_social'] : null;
-                if (empty($linha['nome_fantasia'])) {
-                    $linha['nome_fantasia'] = $razaoSocial;
+            $limit   = 1000;
+            $lastId  = 0;
+            $temMais = true;
+
+            while ($temMais) {
+                echo "Lendo estabelecimentos a partir do ID: " . $lastId . "..." . PHP_EOL;
+                $inicio = microtime(true);
+                $estabelecimentos = DB::table('estabelecimentos')
+                    ->where('id', '>', $lastId)
+                    ->orderBy('id')
+                    ->limit($limit)
+                    ->get();
+
+                $temMais = $estabelecimentos->count() === $limit;
+
+
+                foreach ($estabelecimentos as $estabelecimento) {
+                    $linha   = (array) $estabelecimento;
+                    $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
+                    if (empty($empresa)) {
+                        echo PHP_EOL . "❌ Empresa não encontrada: " . $linha['cnpj_basico'] . PHP_EOL . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+                        continue;
+                    }
+                    $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
+                    $linha['cnpj']       = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
+                    $razaoSocial         = $empresa !== null ? $empresa['razao_social'] : null;
+                    if (empty($linha['nome_fantasia'])) {
+                        $linha['nome_fantasia'] = $razaoSocial;
+                    }
+                    $simples = $this->pegarSimples($linha['cnpj_basico']);
+                    if (empty($simples)) {
+                        $simples = [
+                            'opcao_pelo_simples'      => 'N',
+                            'data_opcao_pelo_simples' => null,
+                            'data_exclusao_simples'   => null,
+                            'opcao_pelo_mei'          => 'N',
+                            'data_opcao_mei'          => null,
+                            'data_exclusao_mei'       => null,
+                        ];
+                    }
+                    $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
+                    if (empty($linha['empresa_id'])) {
+                        continue;
+                    }
+                    $linha['cnpj'] = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
+
+                    $razaoSocial = $empresa !== null ? $empresa['razao_social'] : null;
+                    if (empty($linha['nome_fantasia'])) {
+                        $linha['nome_fantasia'] = $razaoSocial;
+                    }
+                    $idEstabelecimento = $estabelecimento->id ?? null;
+                    if ($idEstabelecimento) {
+                        $this->popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha);
+                        echo '✅ Base populada com sucesso.' . PHP_EOL;
+                    } else {
+                        echo '❌ Erro ao inserir estabelecimento: ' . $linha['cnpj_basico'] . PHP_EOL;
+                        exit;
+                    }
+                    $fim   = microtime(true);
+                    $tempo = $fim - $inicio;
+                    echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
+
                 }
-                $idEstabelecimento = $estabelecimento->id ?? null;
-                if ($idEstabelecimento) {
-                    $this->popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha);
-                    echo '✅ Base populada com sucesso.' . PHP_EOL;
-                } else {
-                    echo '❌ Erro ao inserir estabelecimento: ' . $linha['cnpj_basico'] . PHP_EOL;
-                    exit;
-                }
-                $fim   = microtime(true);
-                $tempo = $fim - $inicio;
-                echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
 
             }
+
         } catch (Exception $e) {
             echo '❌ Erro ao processar: ' . $e->getMessage() . PHP_EOL;
             exit;
 
         }
-
     }
-
 }
