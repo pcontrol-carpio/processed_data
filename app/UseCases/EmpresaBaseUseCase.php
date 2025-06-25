@@ -78,7 +78,7 @@ class EmpresaBaseUseCase
         // Processa cada $estabelecimento
         try {
 
-            $limit   = 1000;
+            $limit   = 10000;
             $lastId  = 0;
             $temMais = true;
 
@@ -91,7 +91,7 @@ class EmpresaBaseUseCase
                     ->limit($limit)
                     ->get();
 
-                $temMais = $estabelecimentos->count() === $limit;
+                $temMais = !$estabelecimentos->isEmpty();
 
                 foreach ($estabelecimentos as $estabelecimento) {
                     $linha   = (array) $estabelecimento;
