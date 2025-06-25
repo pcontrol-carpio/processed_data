@@ -3,13 +3,14 @@ namespace App\Console\Commands;
 
 use App\Exceptions\ArquivoImportadoException;
 use App\Http\Controllers\DirectoryController;
+use App\UseCases\EmpresaBaseUseCase;
 use App\Utils\FileCleaner;
 use Exception;
 use Illuminate\Console\Command;
 
 class ReadDirecotryCommand extends Command
 {
-    public function __construct(private DirectoryController $directoryController)
+    public function __construct(private DirectoryController $directoryController, private EmpresaBaseUseCase $empresaBaseUseCase)
     {
         parent::__construct();
     }
@@ -83,6 +84,8 @@ class ReadDirecotryCommand extends Command
                 $this->directoryController->finishDirectory($current_directory);
             }
             $this->info("Todos os arquivos foram processados");
+            $this->info('Iniciando o processo da tabela base');
+            $this->empresaBaseUseCase();
             $this->info("Processamento finalizado");
             $this->info("Resultados do processamento:");
             foreach ($processeds as $file => $processed) {
