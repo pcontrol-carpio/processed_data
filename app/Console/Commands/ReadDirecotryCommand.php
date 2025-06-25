@@ -85,7 +85,8 @@ class ReadDirecotryCommand extends Command
             }
             $this->info("Todos os arquivos foram processados");
             $this->info('Iniciando o processo da tabela base');
-            $this->empresaBaseUseCase();
+            $empresaBase = $this->empresaBaseUseCase;
+            $empresaBase();
             $this->info("Processamento finalizado");
             $this->info("Resultados do processamento:");
             foreach ($processeds as $file => $processed) {
