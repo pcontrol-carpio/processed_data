@@ -85,7 +85,7 @@ class EmpresaBaseUseCase
             while ($temMais) {
                 echo "Lendo estabelecimentos a partir do ID: " . $lastId . "..." . PHP_EOL;
                 $inicio = microtime(true);
-                $estabelecimentos = DB::table('estabelecimentos')
+                $estabelecimentos = DB::table('estabelecimento')
                     ->where('id', '>', $lastId)
                     ->orderBy('id')
                     ->limit($limit)
