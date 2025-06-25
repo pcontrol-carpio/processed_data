@@ -78,7 +78,7 @@ class EmpresaBaseUseCase
         // Processa cada $estabelecimento
         try {
 
-            $limit   = 100000;
+            $limit   = 200000;
             $lastId  = 8310000;
             $temMais = true;
 
