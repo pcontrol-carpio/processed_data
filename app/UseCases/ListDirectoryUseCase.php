@@ -30,6 +30,7 @@ class ListDirectoryUseCase
             'Socios'           => $pastasRemotas->filter(fn($a) => str_starts_with($a, 'Socios'))->sort()->values(),
             'Estabelecimentos' => $pastasRemotas->filter(fn($a) => str_starts_with($a, 'Estabelecimentos'))->sort()->values(),
         ];
+
         return $ordem;
         // Retorno pode ser um array, JSON, ou o que preferir
     }
