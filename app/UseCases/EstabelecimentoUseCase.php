@@ -66,52 +66,6 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 ->first())->toArray();
     }
 
-    private function popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha)
-    {
-        $capital_social            = (float) $empresa['capital_social'];
-        $natureza_juridica         = (int) $empresa['natureza_juridica'];
-        $porte                     = (int) $empresa['porte'];
-        $municipio                 = (int) $linha['municipio'];
-        $matriz_filial             = (int) $linha['matriz_filial'];
-        $situacao_cadastral        = (int) $linha['situacao_cadastral'];
-        $motivo_situacao_cadastral = (int) $linha['motivo_situacao_cadastral'];
-        $dados                     = [
-            'estabelecimento_id'        => $idEstabelecimento,
-                                                                     //empresa
-            'razao_social'              => $empresa['razao_social'], //ok
-            'natureza_juridica'         => $natureza_juridica,
-            'capital_social'            => $capital_social,
-            'porte'                     => $porte,
-                                                                            //estabelecimento
-            'empresa_id'                => $linha['empresa_id'],            //ok
-            'cnpj'                      => $linha['cnpj'],                  //ok
-            'nome_fantasia'             => $linha['nome_fantasia'],         //ok
-            'cnae_fiscal_principal'     => $linha['cnae_fiscal_principal'], //ok
-            'uf'                        => $linha['uf'],                    //ok
-            'municipio'                 => $municipio,
-            'bairro'                    => $linha['bairro'],                                     //ok
-            'data_inicio_atividade'     => $this->formatarData($linha['data_inicio_atividade']), //ok
-            'matriz'                    => $matriz_filial,
-            'simples'                   => ($simples['opcao_pelo_simples'] == 'S') ? 1 : 0, //ok
-            'mei'                       => ($simples['opcao_pelo_mei'] == 'S') ? 1 : 0,     //ok
-            'situacao_cadastral'        => $situacao_cadastral,
-            'data_situacao_cadastral'   => $this->formatarData($linha['data_situacao_cadastral']), //ok
-            'motivo_situacao_cadastral' => $motivo_situacao_cadastral,
-        ];
-
-        dd($dados);
-        $keys = array_keys($dados);
-
-        try {
-            DB::table('base')->upsert([$dados], ['cnpj'], $keys);
-        } catch (Exception $e) {
-            file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($dados, true));
-
-            dd($e);exit;
-
-        }
-
-    }
 
     public function __invoke($file)
     {
@@ -128,6 +82,10 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     $inicio = microtime(true);
                     $newChunk = [];
                     foreach ($chunkInsert as &$linha) {
+                        // Formata as datas
+                        $linha['data_situacao_cadastral'] = $this->formatarData($linha['data_situacao_cadastral']);
+                        $linha['data_inicio_atividade'] = $this->formatarData($linha['data_inicio_atividade']);
+                        $linha['data_situacao_especial'] = $this->formatarData($linha['data_situacao_especial']);
 
                         $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                         if (empty($empresa)) {
