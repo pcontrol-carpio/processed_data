@@ -98,6 +98,8 @@ class EstabelecimentoUseCase extends CsvChunkReader
             'data_situacao_cadastral'   => $this->formatarData($linha['data_situacao_cadastral']), //ok
             'motivo_situacao_cadastral' => $motivo_situacao_cadastral,
         ];
+
+        dd($dados);
         $keys = array_keys($dados);
 
         try {
