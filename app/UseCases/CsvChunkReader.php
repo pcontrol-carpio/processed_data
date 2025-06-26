@@ -32,9 +32,10 @@ abstract class CsvChunkReader
             $msg = $linha;
         }
 
-        // Remove caracteres especiais indesejados (adicione conforme sua necessidade)
+
+
         $msg = str_replace([
-            '!', '@', '#', '&', '$', '%', '*', '+', '-', '<', '>', '/', ';', ',', '\\', '.', '_', '(', ')', '°', '"', '\'', '?', '[', ']', '{', '}', '=', '^', '`', '|',
+            '!', '#', '&', '$', '%', '*', '+', '<', '>', ';', ',', '\\', '.', '_', '°', '"', '\'', '?', '[', ']', '{', '}', '=', '^', '`', '|',
         ], '', $msg);
 
         // Remove espaços duplicados e trim final
