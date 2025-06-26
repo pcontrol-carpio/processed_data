@@ -86,6 +86,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
                         $linha['data_situacao_cadastral'] = $this->formatarData($linha['data_situacao_cadastral']);
                         $linha['data_inicio_atividade'] = $this->formatarData($linha['data_inicio_atividade']);
                         $linha['data_situacao_especial'] = $this->formatarData($linha['data_situacao_especial']);
+                        $linha['correio_eletronico'] = strtolower($linha['correio_eletronico']);
 
                         $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                         if (empty($empresa)) {
