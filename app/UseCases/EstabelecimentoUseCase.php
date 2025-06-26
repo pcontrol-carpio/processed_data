@@ -41,8 +41,14 @@ class EstabelecimentoUseCase extends CsvChunkReader
     ];
     private function formatarData($data)
     {
+
         if ($data == null || $data == '') {
             return null;
+        }
+
+        // a data e 20151005 e eu preciso retornar 2015-10-05
+        if (strlen($data) == 8) {
+            return substr($data, 0, 4) . '-' . substr($data, 4, 2) . '-' . substr($data, 6, 2);
         }
         return (int) substr($data, 0, 4);
     }
