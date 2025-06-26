@@ -121,7 +121,6 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     $newChunk = [];
                     foreach ($chunkInsert as &$linha) {
 
-                        dd($linha);
                         $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                         if (empty($empresa)) {
                             echo PHP_EOL . "❌ Empresa não encontrada: " . $linha['cnpj_basico'] . PHP_EOL.json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
