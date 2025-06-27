@@ -63,7 +63,7 @@ class EmpresaBaseUseCase
 
     public function __invoke()
     {
-        $limit = 200000;
+        $limit =30000;
         $lastId = DB::table('csv_progress')
             ->where('filename', 'EmpresaBase')
             ->value('last_chunk') ?? 0; // Valor inicial se não houver progresso salvo
