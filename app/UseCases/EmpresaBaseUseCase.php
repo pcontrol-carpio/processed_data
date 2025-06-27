@@ -63,7 +63,8 @@ class EmpresaBaseUseCase
 
    public function __invoke()
 {
-    $limit  = 20000;
+    $limit  = 30000;
+
     $lastId = DB::table('csv_progress')
         ->where('filename', 'EmpresaBase')
         ->value('last_chunk') ?? 0;
@@ -112,7 +113,6 @@ class EmpresaBaseUseCase
             echo "💾 Inserindo " . count($dadosLote) . " registros com insert direto..." . PHP_EOL;
             $this->salvarLoteDireto($dadosLote);
         }
-        exit('Processamento concluído!');
         // Atualiza progresso
         DB::table('csv_progress')->updateOrInsert(
             ['filename' => 'EmpresaBase'],
