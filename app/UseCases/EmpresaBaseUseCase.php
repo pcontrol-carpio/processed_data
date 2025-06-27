@@ -139,7 +139,7 @@ private function salvarLoteDireto(array $dados)
     $updateFields = array_diff($colunas, ['id']); // exemplo: não atualiza a PK
     $onDuplicate = implode(', ', array_map(fn($c) => "`$c` = VALUES(`$c`)", $updateFields));
 
-    $sql = "INSERT INTO `empresa_base` ($colunasSql) VALUES " . implode(',', $valuesSql)
+    $sql = "INSERT INTO `base` ($colunasSql) VALUES " . implode(',', $valuesSql)
          . " ON DUPLICATE KEY UPDATE $onDuplicate";
 
     DB::statement($sql);
