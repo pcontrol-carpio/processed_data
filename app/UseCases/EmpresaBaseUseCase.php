@@ -6,7 +6,7 @@ use Exception;
 
 class EmpresaBaseUseCase
 {
-    private const CHUNK_SIZE = 20000;
+    private const CHUNK_SIZE = 30000;
 
     private function formatarData($data)
     {
@@ -23,7 +23,7 @@ class EmpresaBaseUseCase
     private function pegarSimples($baseCnpj)
     {
         $simples = DB::table('simples')->where('cnpj_basico', $baseCnpj)->first();
-        if (!$simples) {
+        if (! $simples) {
             return [
                 'opcao_pelo_simples'      => 'N',
                 'data_opcao_pelo_simples' => null,
@@ -63,7 +63,7 @@ class EmpresaBaseUseCase
 
     public function __invoke()
     {
-        $limit =30000;
+        $limit  = 30000;
         $lastId = DB::table('csv_progress')
             ->where('filename', 'EmpresaBase')
             ->value('last_chunk') ?? 0; // Valor inicial se não houver progresso salvo
@@ -77,12 +77,12 @@ class EmpresaBaseUseCase
                 ->limit($limit)
                 ->get();
 
-            $temMais = !$estabelecimentos->isEmpty();
+            $temMais   = ! $estabelecimentos->isEmpty();
             $dadosLote = [];
 
             foreach ($estabelecimentos as $idx => $estabelecimento) {
                 echo "Lendo estabelecimento: {$estabelecimento->id}" . PHP_EOL;
-                $linha = (array) $estabelecimento;
+                $linha   = (array) $estabelecimento;
                 $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
 
                 if (empty($empresa)) {
@@ -96,9 +96,10 @@ class EmpresaBaseUseCase
                 }
 
                 $simples = $this->pegarSimples($linha['cnpj_basico']);
-                echo "✅ Empresa encontrada: {$linha['cnpj_basico']} - {$empresa['razao_social']}" . PHP_EOL;
+                $total = count($estabelecimentos);
+                echo "Processando {$linha['cnpj_basico']} - {$empresa['razao_social']} ({$idx} de {$total}) com chunk de ".self::CHUNK_SIZE . PHP_EOL;
                 $dadosLote[] = $this->montarRegistro($estabelecimento->id, $empresa, $simples, $linha);
-                $lastId = $estabelecimento->id;
+                $lastId      = $estabelecimento->id;
 
                 if (count($dadosLote) >= self::CHUNK_SIZE) {
                     echo "Salvando lote com " . count($dadosLote) . " registros..." . PHP_EOL;
@@ -106,11 +107,11 @@ class EmpresaBaseUseCase
                     $dadosLote = [];
                 }
             }
- DB::table('csv_progress')->updateOrInsert(
-                    ['filename' => 'EmpresaBase'],
-                    ['last_chunk' => $lastId, 'updated_at' => now()]
-                );
-            if (!empty($dadosLote)) {
+            DB::table('csv_progress')->updateOrInsert(
+                ['filename' => 'EmpresaBase'],
+                ['last_chunk' => $lastId, 'updated_at' => now()]
+            );
+            if (! empty($dadosLote)) {
                 $this->salvarLote($dadosLote);
             }
         }
