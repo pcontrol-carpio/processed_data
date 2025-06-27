@@ -72,12 +72,12 @@ class EstabelecimentoUseCase extends CsvChunkReader
         $progress   = DB::table('csv_progress')->where('filename', basename($file))->first();
         $startChunk = $progress->last_chunk ?? 0;
 
-        $maxPlaceholders = 50000;
+        $maxPlaceholders = 500000;
         $colunas         = count($this->colunas);
         $chunkSize       = floor($maxPlaceholders / $colunas);
-        foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunk) {
+        foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunkInsert) {
 
-            foreach (array_chunk($chunk, $chunkSize) as $chunkInsert) {
+            // foreach (array_chunk($chunk, $chunkSize) as $chunkInsert) {
                 try {
                     $inicio = microtime(true);
                     $newChunk = [];
@@ -161,7 +161,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
 
                     return true;
                 }
-            }
+            // }
         }
         return true;
 

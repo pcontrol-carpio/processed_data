@@ -6,7 +6,7 @@ use Exception;
 
 class EmpresaBaseUseCase
 {
-    private const CHUNK_SIZE = 3000;
+    private const CHUNK_SIZE = 30000;
 
     private function formatarData($data)
     {
@@ -64,7 +64,9 @@ class EmpresaBaseUseCase
     public function __invoke()
     {
         $limit = 200000;
-        $lastId = 8310000;
+        $lastId = DB::table('csv_progress')
+            ->where('filename', 'EmpresaBase')
+            ->value('last_chunk') ?? 0; // Valor inicial se não houver progresso salvo
         $temMais = true;
 
         while ($temMais) {
@@ -101,7 +103,10 @@ class EmpresaBaseUseCase
                     $dadosLote = [];
                 }
             }
-
+ DB::table('csv_progress')->updateOrInsert(
+                    ['filename' => 'EmpresaBase'],
+                    ['last_chunk' => $lastId, 'updated_at' => now()]
+                );
             if (!empty($dadosLote)) {
                 $this->salvarLote($dadosLote);
             }
