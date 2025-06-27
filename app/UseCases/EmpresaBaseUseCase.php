@@ -61,62 +61,90 @@ class EmpresaBaseUseCase
         ];
     }
 
-    public function __invoke()
-    {
-        $limit  = 30000;
-        $lastId = DB::table('csv_progress')
-            ->where('filename', 'EmpresaBase')
-            ->value('last_chunk') ?? 0; // Valor inicial se não houver progresso salvo
-        $temMais = true;
+   public function __invoke()
+{
+    $limit  = 30000;
+    $lastId = DB::table('csv_progress')
+        ->where('filename', 'EmpresaBase')
+        ->value('last_chunk') ?? 0;
 
-        while ($temMais) {
-            echo "Lendo estabelecimentos a partir do ID: $lastId pegando de " . ($lastId + 1) . " a " . ($lastId + $limit) . "..." . PHP_EOL;
-            $estabelecimentos = DB::table('estabelecimento')
-                ->where('id', '>', $lastId)
-                ->orderBy('id')
-                ->limit($limit)
-                ->get();
+    $temMais = true;
 
-            $temMais   = ! $estabelecimentos->isEmpty();
-            $dadosLote = [];
+    while ($temMais) {
+        echo "Lendo estabelecimentos a partir do ID: $lastId pegando de " . ($lastId + 1) . " a " . ($lastId + $limit) . "..." . PHP_EOL;
 
-            foreach ($estabelecimentos as $idx => $estabelecimento) {
-                echo "Lendo estabelecimento: {$estabelecimento->id}" . PHP_EOL;
-                $linha   = (array) $estabelecimento;
-                $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
+        $estabelecimentos = DB::table('estabelecimento')
+            ->where('id', '>', $lastId)
+            ->orderBy('id')
+            ->limit($limit)
+            ->get();
 
-                if (empty($empresa)) {
-                    echo "❌ Empresa não encontrada: {$linha['cnpj_basico']}" . PHP_EOL;
-                    continue;
-                }
+        $temMais   = !$estabelecimentos->isEmpty();
+        $dadosLote = [];
 
-                $linha['empresa_id'] = $empresa['id'] ?? null;
-                if (empty($linha['empresa_id'])) {
-                    continue;
-                }
+        foreach ($estabelecimentos as $idx => $estabelecimento) {
+            echo "Lendo estabelecimento: {$estabelecimento->id}" . PHP_EOL;
+            $linha   = (array) $estabelecimento;
+            $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
 
-                $simples = $this->pegarSimples($linha['cnpj_basico']);
-                $total = count($estabelecimentos);
-                echo "Processando {$linha['cnpj_basico']} - {$empresa['razao_social']} ({$idx} de {$total}) com chunk de ".self::CHUNK_SIZE . PHP_EOL;
-                flush();
-                $dadosLote[] = $this->montarRegistro($estabelecimento->id, $empresa, $simples, $linha);
-                $lastId      = $estabelecimento->id;
-
-                if (count($dadosLote) >= self::CHUNK_SIZE) {
-                    echo "Salvando lote com " . count($dadosLote) . " registros..." . PHP_EOL;
-                    $this->salvarLote($dadosLote);
-                    $dadosLote = [];
-                }
+            if (empty($empresa)) {
+                echo "❌ Empresa não encontrada: {$linha['cnpj_basico']}" . PHP_EOL;
+                continue;
             }
-            DB::table('csv_progress')->updateOrInsert(
-                ['filename' => 'EmpresaBase'],
-                ['last_chunk' => $lastId, 'updated_at' => now()]
-            );
-            if (! empty($dadosLote)) {
-                $this->salvarLote($dadosLote);
+
+            $linha['empresa_id'] = $empresa['id'] ?? null;
+            if (empty($linha['empresa_id'])) {
+                continue;
             }
+
+            $simples = $this->pegarSimples($linha['cnpj_basico']);
+            $total   = count($estabelecimentos);
+
+            echo "Processando {$linha['cnpj_basico']} - {$empresa['razao_social']} ({$idx} de {$total})" . PHP_EOL;
+            flush();
+
+            $dadosLote[] = $this->montarRegistro($estabelecimento->id, $empresa, $simples, $linha);
+            $lastId      = $estabelecimento->id;
         }
+
+        // Salva tudo de uma vez (upsert com SQL puro)
+        if (!empty($dadosLote)) {
+            echo "💾 Inserindo " . count($dadosLote) . " registros com insert direto..." . PHP_EOL;
+            $this->salvarLoteDireto($dadosLote);
+        }
+
+        // Atualiza progresso
+        DB::table('csv_progress')->updateOrInsert(
+            ['filename' => 'EmpresaBase'],
+            ['last_chunk' => $lastId, 'updated_at' => now()]
+        );
     }
+}
+
+private function salvarLoteDireto(array $dados)
+{
+    if (empty($dados)) return;
+
+    $colunas = array_keys($dados[0]);
+    $colunasSql = implode(',', array_map(fn($c) => "`$c`", $colunas));
+    $valuesSql = [];
+
+    foreach ($dados as $linha) {
+        $valoresEscapados = array_map(fn($valor) => $valor === null ? 'NULL' : DB::getPdo()->quote($valor), $linha);
+
+        $valuesSql[] = '(' . implode(',', $valoresEscapados) . ')';
+    }
+
+    $updateFields = array_diff($colunas, ['id']); // exemplo: não atualiza a PK
+    $onDuplicate = implode(', ', array_map(fn($c) => "`$c` = VALUES(`$c`)", $updateFields));
+
+    $sql = "INSERT INTO `empresa_base` ($colunasSql) VALUES " . implode(',', $valuesSql)
+         . " ON DUPLICATE KEY UPDATE $onDuplicate";
+
+    DB::statement($sql);
+}
+
+
 
     private function salvarLote(array $lote)
     {
