@@ -106,43 +106,6 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     $fim   = microtime(true);
                     $tempo = $fim - $inicio;
                     echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
-                    // $simples = $this->pegarSimples($linha['cnpj_basico']);
-                    // if(empty($simples)){
-                    //     $simples = [
-                    //         'opcao_pelo_simples' => 'N',
-                    //         'data_opcao_pelo_simples' => null,
-                    //         'data_exclusao_simples' => null,
-                    //         'opcao_pelo_mei' => 'N',
-                    //         'data_opcao_mei' => null,
-                    //         'data_exclusao_mei' => null,
-                    //     ];
-                    // }
-                    // // Visualização: Mostra cada linha que será inserida/atualizada
-                    // // Verifica se a empresa existe, se não existir, pula para a próxima linha
-                    // $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
-                    // if (empty($linha['empresa_id'])) {
-                    //     continue; // Skip if CNPJ parts are missing
-                    // }
-                    // $linha['cnpj'] = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
-
-                    // $razaoSocial = ! is_null($empresa) ? $empresa['razao_social'] : null;
-                    // if (empty($linha['nome_fantasia'])) {
-                    //     $linha['nome_fantasia'] = $razaoSocial;
-                    // }
-                    // DB::table('estabelecimento')->upsert([$linha], ['cnpj_basico'], $this->colunas);
-                    // $registro          = DB::table('estabelecimento')->where('cnpj_basico', $linha['cnpj_basico'])->first();
-                    // $idEstabelecimento = $registro->id ?? null;
-                    // if ($idEstabelecimento) {
-                    //     $this->popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha);
-                    //     echo '✅ Base populada com sucesso.' . PHP_EOL;
-                    // }else{
-                    //     echo '❌ Erro ao inserir estabelecimento: ' . $linha['cnpj_basico'] . PHP_EOL;
-                    //    exit;
-                    // }
-                    // $fim   = microtime(true);
-                    // $tempo = $fim - $inicio;
-                    // echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
-                    // }
 
                 } catch (Exception $e) {
                     file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true));
