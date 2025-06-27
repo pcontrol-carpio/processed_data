@@ -6,7 +6,7 @@ use Exception;
 
 class EmpresaBaseUseCase
 {
-    private const CHUNK_SIZE = 30000;
+    private const CHUNK_SIZE = 20000;
 
     private function formatarData($data)
     {
@@ -81,6 +81,7 @@ class EmpresaBaseUseCase
             $dadosLote = [];
 
             foreach ($estabelecimentos as $idx => $estabelecimento) {
+                echo "Lendo estabelecimento: {$estabelecimento->id}" . PHP_EOL;
                 $linha = (array) $estabelecimento;
                 $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
 
@@ -95,10 +96,12 @@ class EmpresaBaseUseCase
                 }
 
                 $simples = $this->pegarSimples($linha['cnpj_basico']);
+                echo "✅ Empresa encontrada: {$linha['cnpj_basico']} - {$empresa['razao_social']}" . PHP_EOL;
                 $dadosLote[] = $this->montarRegistro($estabelecimento->id, $empresa, $simples, $linha);
                 $lastId = $estabelecimento->id;
 
                 if (count($dadosLote) >= self::CHUNK_SIZE) {
+                    echo "Salvando lote com " . count($dadosLote) . " registros..." . PHP_EOL;
                     $this->salvarLote($dadosLote);
                     $dadosLote = [];
                 }
