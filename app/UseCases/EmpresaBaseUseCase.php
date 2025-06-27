@@ -6,7 +6,7 @@ use Exception;
 
 class EmpresaBaseUseCase
 {
-    private const CHUNK_SIZE = 30000;
+    private const CHUNK_SIZE = 10000;
 
     private function formatarData($data)
     {
@@ -126,6 +126,7 @@ class EmpresaBaseUseCase
             flush();
         } catch (Exception $e) {
             file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($lote, true), FILE_APPEND);
+            dd($e->getMessage());
             echo '❌ Erro ao inserir lote: ' . $e->getMessage() . PHP_EOL;
         }
     }
