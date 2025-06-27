@@ -123,7 +123,8 @@ class EmpresaBaseUseCase
 
 private function salvarLoteDireto(array $dados)
 {
-    if (empty($dados)) return;
+   try{
+     if (empty($dados)) return;
 
     $colunas = array_keys($dados[0]);
     $colunasSql = implode(',', array_map(fn($c) => "`$c`", $colunas));
@@ -142,6 +143,10 @@ private function salvarLoteDireto(array $dados)
          . " ON DUPLICATE KEY UPDATE $onDuplicate";
 
     DB::statement($sql);
+   } catch (Exception $e) {
+       file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true));
+       echo '❌ Erro ao processar lote: ' . $e->getMessage() . PHP_EOL;
+   }
 }
 
 
