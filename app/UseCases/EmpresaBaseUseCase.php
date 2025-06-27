@@ -112,7 +112,7 @@ class EmpresaBaseUseCase
             echo "💾 Inserindo " . count($dadosLote) . " registros com insert direto..." . PHP_EOL;
             $this->salvarLoteDireto($dadosLote);
         }
-
+        exit('Processamento concluído!');
         // Atualiza progresso
         DB::table('csv_progress')->updateOrInsert(
             ['filename' => 'EmpresaBase'],
