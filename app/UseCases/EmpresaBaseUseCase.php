@@ -98,6 +98,7 @@ class EmpresaBaseUseCase
                 $simples = $this->pegarSimples($linha['cnpj_basico']);
                 $total = count($estabelecimentos);
                 echo "Processando {$linha['cnpj_basico']} - {$empresa['razao_social']} ({$idx} de {$total}) com chunk de ".self::CHUNK_SIZE . PHP_EOL;
+                flush();
                 $dadosLote[] = $this->montarRegistro($estabelecimento->id, $empresa, $simples, $linha);
                 $lastId      = $estabelecimento->id;
 
