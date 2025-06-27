@@ -70,7 +70,7 @@ class EmpresaBaseUseCase
         $temMais = true;
 
         while ($temMais) {
-            echo "Lendo estabelecimentos a partir do ID: $lastId..." . PHP_EOL;
+            echo "Lendo estabelecimentos a partir do ID: $lastId pegando de " . ($lastId + 1) . " a " . ($lastId + $limit) . "..." . PHP_EOL;
             $estabelecimentos = DB::table('estabelecimento')
                 ->where('id', '>', $lastId)
                 ->orderBy('id')
