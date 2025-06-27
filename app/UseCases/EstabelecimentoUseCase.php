@@ -145,8 +145,12 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     // }
 
                 } catch (Exception $e) {
+                    file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true));
                     echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
                     echo "Testando a linha que deu erro" . PHP_EOL;
+
+                    dd($e);
+
                     foreach ($newChunk as $key => $linhaInsert) {
                         try {
                             echo '✅ Linha: ' . json_encode($linhaInsert, JSON_UNESCAPED_UNICODE) . PHP_EOL.PHP_EOL;
