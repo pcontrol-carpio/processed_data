@@ -38,7 +38,6 @@ class EstabelecimentoUseCase extends CsvChunkReader
         'correio_eletronico',
         'situacao_especial',
         'data_situacao_especial',
-        'empresa_id',
     ];
     private function formatarData($data)
     {
@@ -80,7 +79,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
         foreach ($this->readCsv($file, $colunas, $startChunk) as $chunkInsert) {
             $inicio  = microtime(true);
             $rowsSql = [];
-
+            $novasColunas = array_merge($colunas, ['empresa_id', 'cnpj', 'nome_fantasia']);
             foreach ($chunkInsert as &$linha) {
                 $linha['data_situacao_cadastral'] = $this->formatarData($linha['data_situacao_cadastral']);
                 $linha['data_inicio_atividade']   = $this->formatarData($linha['data_inicio_atividade']);
@@ -102,7 +101,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 $escapedValues = array_map(function ($col) use ($linha) {
                     $value = $linha[$col] ?? null;
                     return is_null($value) ? "NULL" : "'" . addslashes($value) . "'";
-                }, $colunas);
+                }, $novasColunas);
 
                 $rowsSql[] = '(' . implode(',', $escapedValues) . ')';
             }
@@ -111,9 +110,9 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 continue;
             }
 
-            $columns = implode(', ', array_map(fn($col) => "`$col`", $colunas));
+            $columns = implode(', ', array_map(fn($col) => "`$col`", $novasColunas));
             $values  = implode(",\n", $rowsSql);
-            $updates = implode(', ', array_map(fn($col) => "`$col`=VALUES(`$col`)", $colunas));
+            $updates = implode(', ', array_map(fn($col) => "`$col`=VALUES(`$col`)", $novasColunas));
             $sql     = "INSERT INTO `estabelecimento` ($columns) VALUES \n$values \nON DUPLICATE KEY UPDATE $updates;";
 
             try {
