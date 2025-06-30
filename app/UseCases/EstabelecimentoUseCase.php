@@ -38,6 +38,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
         'correio_eletronico',
         'situacao_especial',
         'data_situacao_especial',
+        'empresa_id',
     ];
     private function formatarData($data)
     {
