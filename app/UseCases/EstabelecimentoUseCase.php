@@ -71,12 +71,14 @@ class EstabelecimentoUseCase extends CsvChunkReader
         $progress   = DB::table('csv_progress')->where('filename', basename($file))->first();
         $startChunk = $progress->last_chunk ?? 0;
 
+        $maxPlaceholders = 500000;
         $colunas         = $this->colunas;
         $numColunas      = count($colunas);
+        $chunkSize       = floor($maxPlaceholders / $numColunas);
 
         foreach ($this->readCsv($file, $colunas, $startChunk) as $chunkInsert) {
-            $inicio   = microtime(true);
-            $newChunk = [];
+            $inicio  = microtime(true);
+            $rowsSql = [];
 
             foreach ($chunkInsert as &$linha) {
                 $linha['data_situacao_cadastral'] = $this->formatarData($linha['data_situacao_cadastral']);
@@ -96,35 +98,29 @@ class EstabelecimentoUseCase extends CsvChunkReader
                     $linha['nome_fantasia'] = $empresa['razao_social'] ?? '';
                 }
 
-                $newChunk[] = $linha;
+                $escapedValues = array_map(function ($col) use ($linha) {
+                    $value = $linha[$col] ?? null;
+                    return is_null($value) ? "NULL" : "'" . addslashes($value) . "'";
+                }, $colunas);
+
+                $rowsSql[] = '(' . implode(',', $escapedValues) . ')';
             }
 
-            if (empty($newChunk)) {
+            if (empty($rowsSql)) {
                 continue;
             }
 
-            // Gera SQL bruta para inserção com upsert
-            $columns      = implode(', ', array_map(fn($col) => "`$col`", $colunas));
-            $placeholders = '(' . implode(', ', array_fill(0, $numColunas, '?')) . ')';
-            $valuesSql    = implode(', ', array_fill(0, count($newChunk), $placeholders));
-            $bindings     = [];
-
-            foreach ($newChunk as $row) {
-                foreach ($colunas as $coluna) {
-                    $bindings[] = $row[$coluna] ?? null;
-                }
-            }
-
-            // Define a cláusula ON DUPLICATE KEY UPDATE
+            $columns = implode(', ', array_map(fn($col) => "`$col`", $colunas));
+            $values  = implode(",\n", $rowsSql);
             $updates = implode(', ', array_map(fn($col) => "`$col`=VALUES(`$col`)", $colunas));
-            $sql     = "INSERT INTO `estabelecimento` ($columns) VALUES $valuesSql ON DUPLICATE KEY UPDATE $updates";
+            $sql     = "INSERT INTO `estabelecimento` ($columns) VALUES \n$values \nON DUPLICATE KEY UPDATE $updates;";
 
             try {
-                DB::statement($sql, $bindings);
+                DB::unprepared($sql); // usa SQL literal sem bindings
                 $fim = microtime(true);
                 echo '✅ Inserido com sucesso em ' . number_format($fim - $inicio, 2) . ' segundos.' . PHP_EOL;
             } catch (Exception $e) {
-                file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($bindings, true));
+                file_put_contents('/tmp/erro.txt', $e->getMessage() . "\n\n" . $sql);
                 echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
             }
         }
