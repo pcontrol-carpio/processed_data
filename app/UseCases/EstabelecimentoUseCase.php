@@ -79,7 +79,7 @@ class EstabelecimentoUseCase extends CsvChunkReader
         foreach ($this->readCsv($file, $colunas, $startChunk) as $chunkInsert) {
             $inicio  = microtime(true);
             $rowsSql = [];
-            $novasColunas = array_merge($colunas, ['empresa_id', 'cnpj', 'nome_fantasia']);
+            $novasColunas = array_merge($colunas, ['empresa_id', 'cnpj']);
             foreach ($chunkInsert as &$linha) {
                 $linha['data_situacao_cadastral'] = $this->formatarData($linha['data_situacao_cadastral']);
                 $linha['data_inicio_atividade']   = $this->formatarData($linha['data_inicio_atividade']);
