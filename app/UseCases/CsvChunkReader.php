@@ -6,7 +6,7 @@ use Exception;
 
 abstract class CsvChunkReader
 {
-    protected int $chunkSize = 3000;
+    protected int $chunkSize = 2000;
 
     private function trataTextoCSV($txt)
     {
