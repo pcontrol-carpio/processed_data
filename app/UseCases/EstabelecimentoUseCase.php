@@ -89,10 +89,10 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
                 if (empty($empresa)) {
                     echo PHP_EOL . "❌ Empresa não encontrada: " . $linha['cnpj_basico'] . PHP_EOL . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
-                    continue;
+                    exit;
                 }
 
-                $linha['empresa_id'] = $empresa['id'] ?? null;
+                $linha['empresa_id'] = $empresa['id'] ;
                 $linha['cnpj']       = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
                 if (empty($linha['nome_fantasia'])) {
                     $linha['nome_fantasia'] = $empresa['razao_social'] ?? '';
@@ -121,7 +121,8 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 echo '✅ Inserido com sucesso em ' . number_format($fim - $inicio, 2) . ' segundos.' . PHP_EOL;
             } catch (Exception $e) {
                 file_put_contents('/tmp/erro.txt', $e->getMessage() . "\n\n" . $sql);
-                echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
+                echo '❌ Erro ao processar chunk: ' . PHP_EOL;
+                exit;
             }
         }
 
