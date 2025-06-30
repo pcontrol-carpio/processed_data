@@ -66,72 +66,70 @@ class EstabelecimentoUseCase extends CsvChunkReader
                 ->first())->toArray();
     }
 
-
     public function __invoke($file)
     {
         $progress   = DB::table('csv_progress')->where('filename', basename($file))->first();
         $startChunk = $progress->last_chunk ?? 0;
 
-        $maxPlaceholders = 500000;
-        $colunas         = count($this->colunas);
-        $chunkSize       = floor($maxPlaceholders / $colunas);
-        foreach ($this->readCsv($file, $this->colunas, $startChunk) as $chunkInsert) {
+        $colunas         = $this->colunas;
+        $numColunas      = count($colunas);
 
-            // foreach (array_chunk($chunk, $chunkSize) as $chunkInsert) {
-                try {
-                    $inicio = microtime(true);
-                    $newChunk = [];
-                    foreach ($chunkInsert as &$linha) {
-                        // Formata as datas
-                        $linha['data_situacao_cadastral'] = $this->formatarData($linha['data_situacao_cadastral']);
-                        $linha['data_inicio_atividade'] = $this->formatarData($linha['data_inicio_atividade']);
-                        $linha['data_situacao_especial'] = $this->formatarData($linha['data_situacao_especial']);
-                        $linha['correio_eletronico'] = strtolower($linha['correio_eletronico']);
+        foreach ($this->readCsv($file, $colunas, $startChunk) as $chunkInsert) {
+            $inicio   = microtime(true);
+            $newChunk = [];
 
-                        $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
-                        if (empty($empresa)) {
-                            echo PHP_EOL . "❌ Empresa não encontrada: " . $linha['cnpj_basico'] . PHP_EOL.json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
-                            continue;
-                        }
-                        $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
-                        $linha['cnpj']       = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
-                        $razaoSocial         = $empresa !== null ? $empresa['razao_social'] : null;
-                        if (empty($linha['nome_fantasia'])) {
-                            $linha['nome_fantasia'] = $razaoSocial;
-                        }
-                        $newChunk[] = $linha;
-                    }
+            foreach ($chunkInsert as &$linha) {
+                $linha['data_situacao_cadastral'] = $this->formatarData($linha['data_situacao_cadastral']);
+                $linha['data_inicio_atividade']   = $this->formatarData($linha['data_inicio_atividade']);
+                $linha['data_situacao_especial']  = $this->formatarData($linha['data_situacao_especial']);
+                $linha['correio_eletronico']      = strtolower($linha['correio_eletronico']);
 
-                    DB::table('estabelecimento')->upsert($newChunk, ['cnpj_basico'], $this->colunas);
-                    $fim   = microtime(true);
-                    $tempo = $fim - $inicio;
-                    echo '✅ OK - Linha inserida com sucesso em ' . number_format($tempo, 2) . ' segundos.' . PHP_EOL;
-
-                } catch (Exception $e) {
-                    file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true));
-                    echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
-                    echo "Testando a linha que deu erro" . PHP_EOL;
-
-                    dd($e);
-
-                    foreach ($newChunk as $key => $linhaInsert) {
-                        try {
-                            echo '✅ Linha: ' . json_encode($linhaInsert, JSON_UNESCAPED_UNICODE) . PHP_EOL.PHP_EOL;
-                            DB::table('estabelecimento')->upsert([$linhaInsert], ['cnpj_basico'], $this->colunas);
-                        } catch (Exception $e) {
-                            echo '❌ Erro ao inserir linha: ' . $e->getMessage() . PHP_EOL;
-                            exit;
-                        }
-
-                    }
-
-
-                    return true;
+                $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
+                if (empty($empresa)) {
+                    echo PHP_EOL . "❌ Empresa não encontrada: " . $linha['cnpj_basico'] . PHP_EOL . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+                    continue;
                 }
-            // }
-        }
-        return true;
 
+                $linha['empresa_id'] = $empresa['id'] ?? null;
+                $linha['cnpj']       = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
+                if (empty($linha['nome_fantasia'])) {
+                    $linha['nome_fantasia'] = $empresa['razao_social'] ?? '';
+                }
+
+                $newChunk[] = $linha;
+            }
+
+            if (empty($newChunk)) {
+                continue;
+            }
+
+            // Gera SQL bruta para inserção com upsert
+            $columns      = implode(', ', array_map(fn($col) => "`$col`", $colunas));
+            $placeholders = '(' . implode(', ', array_fill(0, $numColunas, '?')) . ')';
+            $valuesSql    = implode(', ', array_fill(0, count($newChunk), $placeholders));
+            $bindings     = [];
+
+            foreach ($newChunk as $row) {
+                foreach ($colunas as $coluna) {
+                    $bindings[] = $row[$coluna] ?? null;
+                }
+            }
+
+            // Define a cláusula ON DUPLICATE KEY UPDATE
+            $updates = implode(', ', array_map(fn($col) => "`$col`=VALUES(`$col`)", $colunas));
+            $sql     = "INSERT INTO `estabelecimento` ($columns) VALUES $valuesSql ON DUPLICATE KEY UPDATE $updates";
+
+            try {
+                DB::statement($sql, $bindings);
+                $fim = microtime(true);
+                echo '✅ Inserido com sucesso em ' . number_format($fim - $inicio, 2) . ' segundos.' . PHP_EOL;
+            } catch (Exception $e) {
+                file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($bindings, true));
+                echo '❌ Erro ao processar chunk: ' . $e->getMessage() . PHP_EOL;
+            }
+        }
+
+        return true;
     }
 
 }
