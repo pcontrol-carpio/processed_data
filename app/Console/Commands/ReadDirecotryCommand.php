@@ -84,6 +84,8 @@ try{
 }catch(Exception $e){
     dd($e);
 }
+
+
             if (($failed = array_search(false, $processeds, true)) !== false) {
                 echo "File '{$failed}' failed to process.";
             } else {
