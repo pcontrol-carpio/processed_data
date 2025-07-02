@@ -16,7 +16,7 @@ class EmpresaBaseUseCase
     private function pegarEmpresa($baseCnpj)
     {
         return (array) DB::table('empresa')
-            ->where('cnpj_basico', $baseCnpj)
+            ->where('cnpj_basico', operator: $baseCnpj)
             ->first();
     }
 
@@ -61,23 +61,28 @@ class EmpresaBaseUseCase
         ];
     }
 
-   public function __invoke()
+public function __invoke()
 {
     $limit  = 30000;
 
     $lastId = DB::table('csv_progress')
         ->where('filename', 'EmpresaBase')
-        ->value('last_chunk') ?? 0;
+        ->value('last_chunk') ?? null;
+
+    // Pega o maior ID se não houver progresso salvo
+    if ($lastId === null) {
+        $lastId = DB::table('estabelecimento')->max('id');
+    }
 
     $temMais = true;
 
-    while ($temMais) {
-        echo "Lendo estabelecimentos a partir do ID: $lastId pegando de " . ($lastId + 1) . " a " . ($lastId + $limit) . "..." . PHP_EOL;
+    while ($temMais && $lastId > 0) {
+        $startId = max(1, $lastId - $limit + 1);
+        echo "Lendo estabelecimentos do ID: $lastId descendo até $startId..." . PHP_EOL;
 
         $estabelecimentos = DB::table('estabelecimento')
-            ->where('id', '>', $lastId)
-            ->orderBy('id')
-            ->limit($limit)
+            ->whereBetween('id', [$startId, $lastId])
+            ->orderBy('id', 'desc')
             ->get();
 
         $temMais   = !$estabelecimentos->isEmpty();
@@ -105,7 +110,6 @@ class EmpresaBaseUseCase
             flush();
 
             $dadosLote[] = $this->montarRegistro($estabelecimento->id, $empresa, $simples, $linha);
-            $lastId      = $estabelecimento->id;
         }
 
         // Salva tudo de uma vez (upsert com SQL puro)
@@ -116,8 +120,10 @@ class EmpresaBaseUseCase
         // Atualiza progresso
         DB::table('csv_progress')->updateOrInsert(
             ['filename' => 'EmpresaBase'],
-            ['last_chunk' => $lastId, 'updated_at' => now()]
+            ['last_chunk' => $startId - 1, 'updated_at' => now()]
         );
+
+        $lastId = $startId - 1;
     }
 }
 
