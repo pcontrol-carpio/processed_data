@@ -1,0 +1,21 @@
+name: "Deploy para VPS"
+on:
+  push:
+    branches:
+      - main #alterar para PROD: git push PROD main
+jobs:
+  build_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Baixar o código"
+        uses: actions/checkout@v4
+
+      - name: "Copiar arquivos para VPS"
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: "31.97.93.157"
+          username: "root"
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "/var/www/html/"
