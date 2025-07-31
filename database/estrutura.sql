@@ -27,8 +27,8 @@ CREATE TABLE `processados` (
   `pasta` varchar(45) DEFAULT NULL,
   `completo` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4;
+
 
 DROP TABLE IF EXISTS `completados`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -41,8 +41,8 @@ CREATE TABLE `completados` (
   `concluido_em` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `processado_id` (`processado_id`,`arquivo`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4;
+
 
 
 DROP TABLE IF EXISTS `base`;
@@ -69,6 +69,9 @@ CREATE TABLE `base` (
   `situacao_cadastral` tinyint(1) DEFAULT NULL,
   `data_situacao_cadastral` int(11) DEFAULT NULL,
   `motivo_situacao_cadastral` tinyint(4) DEFAULT NULL,
+  `funcionarios` tinyint(2) DEFAULT NULL,
+  `faturamento` tinyint(2) DEFAULT NULL,
+
   PRIMARY KEY (`id`),
   KEY `cnpj` (`cnpj`),
   KEY `uf` (`uf`),
@@ -81,6 +84,8 @@ CREATE TABLE `base` (
   KEY `estabelecimento_id` (`estabelecimento_id`),
   KEY `empresa_id` (`empresa_id`),
   KEY `mei` (`mei`),
+  KEY `funcionarios` (`funcionarios`),
+  KEY `faturamento` (`faturamento`),
   KEY `simples` (`simples`),
   KEY `porte` (`porte`),
   KEY `matriz` (`matriz`),
@@ -89,7 +94,7 @@ CREATE TABLE `base` (
   KEY `capital` (`capital_social`) USING BTREE,
   FULLTEXT KEY `empresa_nome` (`nome_fantasia`,`razao_social`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+
 ALTER TABLE base ADD UNIQUE (cnpj);
 
 --
@@ -117,7 +122,7 @@ CREATE TABLE `empresa` (
   PRIMARY KEY (`id`),
   KEY `cnpj_basico` (`cnpj_basico`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+
 ALTER TABLE empresa ADD UNIQUE (cnpj_basico);
 
 --
@@ -164,7 +169,7 @@ CREATE TABLE `estabelecimento` (
   PRIMARY KEY (`id`),
   KEY `empresa_id` (`empresa_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+
 ALTER TABLE estabelecimento ADD UNIQUE (cnpj);
 --
 -- Table structure for table `processados`
@@ -187,7 +192,7 @@ CREATE TABLE `simples` (
   `data_opcao_mei` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `data_exclusao_mei` varchar(8) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+
 ALTER TABLE simples ADD UNIQUE (cnpj_basico);
 
 --
@@ -218,6 +223,7 @@ CREATE TABLE `socio` (
 
 ALTER TABLE socio ADD UNIQUE (cnpj_basico,nome_socio,cnpj_cpf_socio);
 
+DROP TABLE IF EXISTS `csv_progress`;
 
 CREATE TABLE csv_progress (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -227,7 +233,7 @@ CREATE TABLE csv_progress (
     updated_at TIMESTAMP NULL DEFAULT NULL
 );
 
-/*!40101 SET character_set_client = @saved_cs_client */;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
