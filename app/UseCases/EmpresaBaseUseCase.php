@@ -33,15 +33,25 @@ class EmpresaBaseUseCase
             ->value('id');
     }
 
-    private function getFuncionarioRangeId(string $cnae, int $porte): ?int
-    {
-        $industria = $this->isIndustria($cnae);
+   private function getFuncionarioRangeId(string $cnae, int $porte): ?int
+{
+    $industria = $this->isIndustria($cnae);
 
-        return DB::table('funcionarios_range')
-            ->where('industria', $industria)
-            ->where('porte', $porte)
-            ->value('id');
-    }
+    $faixa = match ($porte) {
+        0 => [0, 1],       // MEI
+        1 => [2, 9],       // ME
+        3 => [10, 49],     // EPP
+        5 => [50, 499],    // Média
+        9 => [500, 999999] // Grande
+    };
+
+    return DB::table('funcionarios_range')
+        ->where('industria', $industria)
+        ->where('min_funcionarios', '<=', $faixa[0])
+        ->where('max_funcionarios', '>=', $faixa[1])
+        ->value('id');
+}
+
 
     private const CHUNK_SIZE = 3000;
 
