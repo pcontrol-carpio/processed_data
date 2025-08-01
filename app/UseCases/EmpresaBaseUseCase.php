@@ -6,6 +6,43 @@ use Exception;
 
 class EmpresaBaseUseCase
 {
+
+    private function isIndustria(string $cnae): bool
+    {
+        $prefixo = str_pad(substr($cnae, 0, 2), 2, '0', STR_PAD_LEFT);
+
+        $industriais = [
+            '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17',
+            '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
+            '31', '32', '33',
+        ];
+
+        return in_array($prefixo, $industriais, true);
+    }
+
+    private function getFaturamentoRangeId(int $simples, int $porte, bool $mei): ?int
+    {
+        // 1 = MEI, 2 = ME (Simples), etc... conforme sua tabela
+        return DB::table('faturamento_range')
+            ->when($mei, fn($q) => $q->where('id', 1))
+            ->when(! $mei, function ($q) use ($simples, $porte) {
+                return $q->where(function ($q2) use ($simples, $porte) {
+                    $q2->where('simples', $simples)->where('porte', $porte);
+                });
+            })
+            ->value('id');
+    }
+
+    private function getFuncionarioRangeId(string $cnae, int $porte): ?int
+    {
+        $industria = $this->isIndustria($cnae);
+
+        return DB::table('funcionarios_range')
+            ->where('industria', $industria)
+            ->where('porte', $porte)
+            ->value('id');
+    }
+
     private const CHUNK_SIZE = 3000;
 
     private function formatarData($data)
@@ -58,104 +95,113 @@ class EmpresaBaseUseCase
             'situacao_cadastral'        => (int) $linha['situacao_cadastral'],
             'data_situacao_cadastral'   => $this->formatarData($linha['data_situacao_cadastral']),
             'motivo_situacao_cadastral' => (int) $linha['motivo_situacao_cadastral'],
+            'funcionarios'              => $this->getFuncionarioRangeId(
+                $linha['cnae_fiscal_principal'],
+                (int) $empresa['porte']
+            ),
+            'faturamento'               => $this->getFaturamentoRangeId(
+                $simples['opcao_pelo_simples'] === 'S' ? 1 : 0,
+                (int) $empresa['porte'],
+                $simples['opcao_pelo_mei'] === 'S'
+            ),
         ];
     }
 
-public function __invoke()
-{
-    $limit  = 30000;
+    public function __invoke()
+    {
+        $limit = 30000;
 
-    $lastId = DB::table('csv_progress')
-        ->where('filename', 'EmpresaBase')
-        ->value('last_chunk') ?? null;
+        $lastId = DB::table('csv_progress')
+            ->where('filename', 'EmpresaBase')
+            ->value('last_chunk') ?? null;
 
-    // Pega o maior ID se não houver progresso salvo
-    if ($lastId === null) {
-        $lastId = DB::table('estabelecimento')->max('id');
-    }
-
-    $temMais = true;
-
-    while ($temMais && $lastId > 0) {
-        $startId = max(1, $lastId - $limit + 1);
-        echo "Lendo estabelecimentos do ID: $lastId descendo até $startId..." . PHP_EOL;
-
-        $estabelecimentos = DB::table('estabelecimento')
-            ->whereBetween('id', [$startId, $lastId])
-            ->orderBy('id', 'desc')
-            ->get();
-
-        $temMais   = !$estabelecimentos->isEmpty();
-        $dadosLote = [];
-
-        foreach ($estabelecimentos as $idx => $estabelecimento) {
-            echo "Lendo estabelecimento: {$estabelecimento->id}" . PHP_EOL;
-            $linha   = (array) $estabelecimento;
-            $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
-
-            if (empty($empresa)) {
-                echo "❌ Empresa não encontrada: {$linha['cnpj_basico']}" . PHP_EOL;
-                continue;
-            }
-
-            $linha['empresa_id'] = $empresa['id'] ?? null;
-            if (empty($linha['empresa_id'])) {
-                continue;
-            }
-
-            $simples = $this->pegarSimples($linha['cnpj_basico']);
-            $total   = count($estabelecimentos);
-
-            echo "Processando {$linha['cnpj_basico']} - {$empresa['razao_social']} ({$idx} de {$total})" . PHP_EOL;
-            flush();
-
-            $dadosLote[] = $this->montarRegistro($estabelecimento->id, $empresa, $simples, $linha);
+        // Pega o maior ID se não houver progresso salvo
+        if ($lastId === null) {
+            $lastId = DB::table('estabelecimento')->max('id');
         }
 
-        // Salva tudo de uma vez (upsert com SQL puro)
-        if (!empty($dadosLote)) {
-            echo "💾 Inserindo " . count($dadosLote) . " registros com insert direto..." . PHP_EOL;
-            $this->salvarLoteDireto($dadosLote);
+        $temMais = true;
+
+        while ($temMais && $lastId > 0) {
+            $startId = max(1, $lastId - $limit + 1);
+            echo "Lendo estabelecimentos do ID: $lastId descendo até $startId..." . PHP_EOL;
+
+            $estabelecimentos = DB::table('estabelecimento')
+                ->whereBetween('id', [$startId, $lastId])
+                ->orderBy('id', 'desc')
+                ->get();
+
+            $temMais   = ! $estabelecimentos->isEmpty();
+            $dadosLote = [];
+
+            foreach ($estabelecimentos as $idx => $estabelecimento) {
+                echo "Lendo estabelecimento: {$estabelecimento->id}" . PHP_EOL;
+                $linha   = (array) $estabelecimento;
+                $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
+
+                if (empty($empresa)) {
+                    echo "❌ Empresa não encontrada: {$linha['cnpj_basico']}" . PHP_EOL;
+                    continue;
+                }
+
+                $linha['empresa_id'] = $empresa['id'] ?? null;
+                if (empty($linha['empresa_id'])) {
+                    continue;
+                }
+
+                $simples = $this->pegarSimples($linha['cnpj_basico']);
+                $total   = count($estabelecimentos);
+
+                echo "Processando {$linha['cnpj_basico']} - {$empresa['razao_social']} ({$idx} de {$total})" . PHP_EOL;
+                flush();
+
+                $dadosLote[] = $this->montarRegistro($estabelecimento->id, $empresa, $simples, $linha);
+            }
+
+            // Salva tudo de uma vez (upsert com SQL puro)
+            if (! empty($dadosLote)) {
+                echo "💾 Inserindo " . count($dadosLote) . " registros com insert direto..." . PHP_EOL;
+                $this->salvarLoteDireto($dadosLote);
+            }
+            // Atualiza progresso
+            DB::table('csv_progress')->updateOrInsert(
+                ['filename' => 'EmpresaBase'],
+                ['last_chunk' => $startId - 1, 'updated_at' => now()]
+            );
+            exit;
+            $lastId = $startId - 1;
         }
-        // Atualiza progresso
-        DB::table('csv_progress')->updateOrInsert(
-            ['filename' => 'EmpresaBase'],
-            ['last_chunk' => $startId - 1, 'updated_at' => now()]
-        );
-
-        $lastId = $startId - 1;
-    }
-}
-
-private function salvarLoteDireto(array $dados)
-{
-   try{
-     if (empty($dados)) return;
-
-    $colunas = array_keys($dados[0]);
-    $colunasSql = implode(',', array_map(fn($c) => "`$c`", $colunas));
-    $valuesSql = [];
-
-    foreach ($dados as $linha) {
-        $valoresEscapados = array_map(fn($valor) => $valor === null ? 'NULL' : DB::getPdo()->quote($valor), $linha);
-
-        $valuesSql[] = '(' . implode(',', $valoresEscapados) . ')';
     }
 
-    $updateFields = array_diff($colunas, ['id']); // exemplo: não atualiza a PK
-    $onDuplicate = implode(', ', array_map(fn($c) => "`$c` = VALUES(`$c`)", $updateFields));
+    private function salvarLoteDireto(array $dados)
+    {
+        try {
+            if (empty($dados)) {
+                return;
+            }
 
-    $sql = "INSERT INTO `base` ($colunasSql) VALUES " . implode(',', $valuesSql)
-         . " ON DUPLICATE KEY UPDATE $onDuplicate";
+            $colunas    = array_keys($dados[0]);
+            $colunasSql = implode(',', array_map(fn($c) => "`$c`", $colunas));
+            $valuesSql  = [];
 
-    DB::statement($sql);
-   } catch (Exception $e) {
-       file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true));
-       echo '❌ Erro ao processar lote: ' . $e->getMessage() . PHP_EOL;
-   }
-}
+            foreach ($dados as $linha) {
+                $valoresEscapados = array_map(fn($valor) => $valor === null ? 'NULL' : DB::getPdo()->quote($valor), $linha);
 
+                $valuesSql[] = '(' . implode(',', $valoresEscapados) . ')';
+            }
 
+            $updateFields = array_diff($colunas, ['id']); // exemplo: não atualiza a PK
+            $onDuplicate  = implode(', ', array_map(fn($c) => "`$c` = VALUES(`$c`)", $updateFields));
+
+            $sql = "INSERT INTO `base` ($colunasSql) VALUES " . implode(',', $valuesSql)
+                . " ON DUPLICATE KEY UPDATE $onDuplicate";
+
+            DB::statement($sql);
+        } catch (Exception $e) {
+            file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true));
+            echo '❌ Erro ao processar lote: ' . $e->getMessage() . PHP_EOL;
+        }
+    }
 
     private function salvarLote(array $lote)
     {
@@ -170,154 +216,3 @@ private function salvarLoteDireto(array $dados)
         }
     }
 }
-
-// namespace App\UseCases;
-
-// use DB;
-// use Exception;
-
-// class EmpresaBaseUseCase
-// {
-
-//     private function formatarData($data)
-//     {
-//         if ($data == null || $data == '') {
-//             return null;
-//         }
-//         return (int) substr($data, 0, 4);
-//     }
-//     private function pegarEmpresa($baseCnpj)
-//     {
-//         return (array) DB::table('empresa')
-//             ->where('cnpj_basico', $baseCnpj)
-//             ->first();
-//     }
-
-//     private function pegarSimples($baseCnpj)
-//     {
-//         return collect(DB::table('simples')
-//                 ->where('cnpj_basico', $baseCnpj)
-//                 ->first())->toArray();
-//     }
-
-//     private function popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha)
-//     {
-//         $capital_social            = (float) $empresa['capital_social'];
-//         $natureza_juridica         = (int) $empresa['natureza_juridica'];
-//         $porte                     = (int) $empresa['porte'];
-//         $municipio                 = (int) $linha['municipio'];
-//         $matriz_filial             = (int) $linha['matriz_filial'];
-//         $situacao_cadastral        = (int) $linha['situacao_cadastral'];
-//         $motivo_situacao_cadastral = (int) $linha['motivo_situacao_cadastral'];
-//         $dados                     = [
-//             'estabelecimento_id'        => $idEstabelecimento,
-//                                                                      //empresa
-//             'razao_social'              => $empresa['razao_social'], //ok
-//             'natureza_juridica'         => $natureza_juridica,
-//             'capital_social'            => $capital_social,
-//             'porte'                     => $porte,
-//                                                                             //estabelecimento
-//             'empresa_id'                => $linha['empresa_id'],            //ok
-//             'cnpj'                      => $linha['cnpj'],                  //ok
-//             'nome_fantasia'             => $linha['nome_fantasia'],         //ok
-//             'cnae_fiscal_principal'     => $linha['cnae_fiscal_principal'], //ok
-//             'uf'                        => $linha['uf'],                    //ok
-//             'municipio'                 => $municipio,
-//             'bairro'                    => $linha['bairro'],                                     //ok
-//             'data_inicio_atividade'     => $this->formatarData($linha['data_inicio_atividade']), //ok
-//             'matriz'                    => $matriz_filial,
-//             'simples'                   => ($simples['opcao_pelo_simples'] == 'S') ? 1 : 0, //ok
-//             'mei'                       => ($simples['opcao_pelo_mei'] == 'S') ? 1 : 0,     //ok
-//             'situacao_cadastral'        => $situacao_cadastral,
-//             'data_situacao_cadastral'   => $this->formatarData($linha['data_situacao_cadastral']), //ok
-//             'motivo_situacao_cadastral' => $motivo_situacao_cadastral,
-//         ];
-//         $keys = array_keys($dados);
-
-//         try {
-//             DB::table('base')->upsert([$dados], ['cnpj'], $keys);
-//         } catch (Exception $e) {
-//             file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL . print_r($dados, true));
-
-//             dd($e);exit;
-
-//         }
-
-//     }
-
-//     public function __invoke()
-//     {
-//         // Processa cada $estabelecimento
-//         try {
-
-//             $limit   = 200000;
-//             $lastId  = 8310000;
-//             $temMais = true;
-
-//             while ($temMais) {
-//                 echo "Lendo estabelecimentos a partir do ID: " . $lastId . "..." . PHP_EOL;
-//                 $inicio           = microtime(true);
-//                 $estabelecimentos = DB::table('estabelecimento')
-//                     ->where('id', '>', $lastId)
-//                     ->orderBy('id')
-//                     ->limit($limit)
-//                     ->get();
-
-//                 $temMais = !$estabelecimentos->isEmpty();
-//                 $total = $estabelecimentos->count();
-//                 foreach ($estabelecimentos as $idx =>  $estabelecimento) {
-//                     $linha   = (array) $estabelecimento;
-//                     $empresa = $this->pegarEmpresa($linha['cnpj_basico']);
-//                     if (empty($empresa)) {
-//                         echo PHP_EOL . "❌ Empresa não encontrada: " . $linha['cnpj_basico'] . PHP_EOL . json_encode($linha, JSON_UNESCAPED_UNICODE) . PHP_EOL;
-//                         continue;
-//                     }
-//                     $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
-//                     $linha['cnpj']       = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
-//                     $razaoSocial         = $empresa !== null ? $empresa['razao_social'] : null;
-//                     if (empty($linha['nome_fantasia'])) {
-//                         $linha['nome_fantasia'] = $razaoSocial;
-//                     }
-//                     $simples = $this->pegarSimples($linha['cnpj_basico']);
-//                     if (empty($simples)) {
-//                         $simples = [
-//                             'opcao_pelo_simples'      => 'N',
-//                             'data_opcao_pelo_simples' => null,
-//                             'data_exclusao_simples'   => null,
-//                             'opcao_pelo_mei'          => 'N',
-//                             'data_opcao_mei'          => null,
-//                             'data_exclusao_mei'       => null,
-//                         ];
-//                     }
-//                     $linha['empresa_id'] = ! empty($empresa) ? $empresa['id'] : null;
-//                     if (empty($linha['empresa_id'])) {
-//                         continue;
-//                     }
-//                     $linha['cnpj'] = "{$linha['cnpj_basico']}{$linha['cnpj_ordem']}{$linha['cnpj_dv']}";
-
-//                     $razaoSocial = $empresa !== null ? $empresa['razao_social'] : null;
-//                     if (empty($linha['nome_fantasia'])) {
-//                         $linha['nome_fantasia'] = $razaoSocial;
-//                     }
-//                     $idEstabelecimento = $estabelecimento->id ?? null;
-//                     if ($idEstabelecimento) {
-//                         $this->popularTabelaBase($idEstabelecimento, $empresa, $simples, $linha);
-//                         echo "✅ Inserido {$linha['cnpj_basico']} dado {$idx} de {$total}" . PHP_EOL;
-//                         flush();
-//                     } else {
-//                         echo '❌ Erro ao inserir estabelecimento: ' . $linha['cnpj_basico'] . PHP_EOL;
-//                         exit;
-//                     }
-
-//                     $lastId = $estabelecimento->id;
-//                 }
-
-//             }
-
-//         } catch (Exception $e) {
-//             echo '❌ Erro ao processar: ' . $e->getMessage() . PHP_EOL;
-//             exit;
-
-//         }
-//     }
-// }
