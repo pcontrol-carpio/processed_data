@@ -41,8 +41,8 @@ private function getFuncionarioRangeId(string $cnae, int $porte): ?int
     $faixa = match ($porte) {
         0 => [0, 1],       // NÃO INFORMADO ou MEI
         1 => $industria? [2,19]:  [2, 9],       // MICRO EMPRESA
-        3 => $industria? [10, 49]: [10, 29],     // EMPRESA DE PEQUENO PORTE
-        4 => $industria? [100, 499]: [50, 49],    // EPP
+        3 => $industria? [20, 99]: [10, 49],     // EMPRESA DE PEQUENO PORTE
+        4 => $industria? [100, 499]: [50, 99],    // EPP
         5 => $industria ? [500, 999999] : [100, 999999],    // DEMAIS (Média indústria ou comércio/serviço)
         default => [0, 0], // Valor padrão para casos não previstos
     };
