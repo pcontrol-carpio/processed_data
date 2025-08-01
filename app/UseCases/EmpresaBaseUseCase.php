@@ -28,17 +28,23 @@ class EmpresaBaseUseCase
         ->value('id');
 }
 
-
-   private function getFuncionarioRangeId(string $cnae, int $porte): ?int
+private function getFuncionarioRangeId(string $cnae, int $porte): ?int
 {
     $industria = $this->isIndustria($cnae);
 
+    // Códigos de porte:
+    // 00 – NÃO INFORMADO
+    // 01 - MICRO EMPRESA
+    // 03 - EMPRESA DE PEQUENO PORTE
+    // 05 - DEMAIS
+
     $faixa = match ($porte) {
-        0 => [0, 1],       // MEI
-        1 => [2, 9],       // ME
-        3 => [10, 49],     // EPP
-        5 => $industria ? [50, 499] : [50, 99],    // Média
-        9 => [500, 999999] // Grande
+        0 => [0, 1],       // NÃO INFORMADO ou MEI
+        1 => $industria? [2,19]:  [2, 9],       // MICRO EMPRESA
+        3 => $industria? [10, 49]: [10, 29],     // EMPRESA DE PEQUENO PORTE
+        4 => $industria? [100, 499]: [50, 49],    // EPP
+        5 => $industria ? [500, 999999] : [100, 999999],    // DEMAIS (Média indústria ou comércio/serviço)
+        default => [0, 0], // Valor padrão para casos não previstos
     };
 
     return DB::table('funcionarios_range')
