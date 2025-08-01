@@ -20,18 +20,14 @@ class EmpresaBaseUseCase
         return in_array($prefixo, $industriais, true);
     }
 
-    private function getFaturamentoRangeId(int $simples, int $porte, bool $mei): ?int
-    {
-        // 1 = MEI, 2 = ME (Simples), etc... conforme sua tabela
-        return DB::table('faturamento_range')
-            ->when($mei, fn($q) => $q->where('id', 1))
-            ->when(! $mei, function ($q) use ($simples, $porte) {
-                return $q->where(function ($q2) use ($simples, $porte) {
-                    $q2->where('simples', $simples)->where('porte', $porte);
-                });
-            })
-            ->value('id');
-    }
+  private function getFaturamentoRangeId(float $capitalSocial): ?int
+{
+    return DB::table('faturamento_range')
+        ->where('min', '<=', $capitalSocial)
+        ->where('max', '>=', $capitalSocial)
+        ->value('id');
+}
+
 
    private function getFuncionarioRangeId(string $cnae, int $porte): ?int
 {
@@ -109,11 +105,8 @@ class EmpresaBaseUseCase
                 $linha['cnae_fiscal_principal'],
                 (int) $empresa['porte']
             ),
-            'faturamento'               => $this->getFaturamentoRangeId(
-                $simples['opcao_pelo_simples'] === 'S' ? 1 : 0,
-                (int) $empresa['porte'],
-                $simples['opcao_pelo_mei'] === 'S'
-            ),
+            'faturamento'               => $this->getFaturamentoRangeId((float) $empresa['capital_social']),
+
         ];
     }
 
