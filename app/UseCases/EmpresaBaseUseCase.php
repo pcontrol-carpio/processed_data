@@ -37,7 +37,7 @@ class EmpresaBaseUseCase
         0 => [0, 1],       // MEI
         1 => [2, 9],       // ME
         3 => [10, 49],     // EPP
-        5 => [50, 499],    // Média
+        5 => $industria ? [50, 499] : [50, 99],    // Média
         9 => [500, 999999] // Grande
     };
 
