@@ -137,6 +137,8 @@ class EmpresaBaseUseCase
 
     private function montarRegistro($idEstabelecimento, $empresa, $simples, $linha)
     {
+        $mei = $simples['opcao_pelo_mei'] === 'S' ? 1 : 0;
+        $opcaoSimples = $simples['opcao_pelo_simples'] === 'S' ? 1 : 0;
 
         $empresa['cnae_fiscal_principal'] = $linha['cnae_fiscal_principal'];
         return [
@@ -154,15 +156,13 @@ class EmpresaBaseUseCase
             'bairro'                    => $linha['bairro'],
             'data_inicio_atividade'     => $this->formatarData($linha['data_inicio_atividade']),
             'matriz'                    => (int) $linha['matriz_filial'],
-            'simples'                   => $simples['opcao_pelo_simples'] === 'S' ? 1 : 0,
-            'mei'                       => $simples['opcao_pelo_mei'] === 'S' ? 1 : 0,
+            'simples'                   => $opcaoSimples,
+            'mei'                       => $mei,
             'situacao_cadastral'        => (int) $linha['situacao_cadastral'],
             'data_situacao_cadastral'   => $this->formatarData($linha['data_situacao_cadastral']),
             'motivo_situacao_cadastral' => (int) $linha['motivo_situacao_cadastral'],
-            'funcionarios'              => $this->checkFuncionarios(
-              $empresa
-            ),
-            'faturamento'               => $this->checkFaturamento($simples['opcao_pelo_simples'] === 'S' ? 1 : 0 , (float) $empresa['porte']),
+            'funcionarios'              => ($mei == 1) ? 1 : $this->checkFuncionarios($empresa),
+            'faturamento'               => ($mei == 1) ? 1: $this->checkFaturamento($opcaoSimples, (float) $empresa['porte']),
 
         ];
     }
