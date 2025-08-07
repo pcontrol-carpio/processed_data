@@ -3,6 +3,7 @@ namespace App\UseCases;
 
 use DB;
 use Exception;
+use stdClass;
 
 class EmpresaBaseUseCase
 {
@@ -20,40 +21,89 @@ class EmpresaBaseUseCase
         return in_array($prefixo, $industriais, true);
     }
 
-  private function getFaturamentoRangeId(float $capitalSocial): ?int
-{
-    return DB::table('faturamento_range')
-        ->where('min', '<=', $capitalSocial)
-        ->where('max', '>=', $capitalSocial)
-        ->value('id');
-}
+ /**
+     * @param array $company
+     * @return int
+     */
+    private function checkFuncionarios(array $company): int
+    {
+        $industria = $this->isIndustria((string)$company['cnae_fiscal_principal']);
+        $porte = (int)$company['porte'];
 
-private function getFuncionarioRangeId(string $cnae, int $porte): ?int
-{
-    $industria = $this->isIndustria($cnae);
+        if (empty($porte)) {
+            return 0;
+        }
 
-    // Códigos de porte:
-    // 00 – NÃO INFORMADO
-    // 01 - MICRO EMPRESA
-    // 03 - EMPRESA DE PEQUENO PORTE
-    // 05 - DEMAIS
+        if ($industria) {
+            switch ($porte) {
+                case 1:
+                    echo 'Indústria | MICRO EMPRESA: 2 a 19 funcionários' . PHP_EOL;
+                    return 2;
+                case 3:
+                    echo 'Indústria | PEQUENO PORTE: 20 a 99 funcionários' . PHP_EOL;
+                    return 3;
+                case 5:
+                    echo 'Indústria | DEMAIS: 100 a 99.999 funcionários' . PHP_EOL;
+                    return 4;
+            }
+        } else {
+            switch ($porte) {
+                case 1:
+                    echo 'Não Indústria | MICRO EMPRESA: 2 a 9 funcionários' . PHP_EOL;
+                    return 5;
+                case 3:
+                    echo 'Não Indústria | PEQUENO PORTE: 10 a 49 funcionários' . PHP_EOL;
+                    return 6;
+                case 5:
+                    echo 'Não Indústria | DEMAIS: 50 a 99 funcionários' . PHP_EOL;
+                    return 7;
+            }
+        }
 
-    $faixa = match ($porte) {
-        0 => [0, 1],       // NÃO INFORMADO ou MEI
-        1 => $industria? [2,19]:  [2, 9],       // MICRO EMPRESA
-        3 => $industria? [20, 99]: [10, 49],     // EMPRESA DE PEQUENO PORTE
-        4 => $industria? [100, 499]: [50, 99],    // EPP
-        5 => $industria ? [500, 999999] : [100, 999999],    // DEMAIS (Média indústria ou comércio/serviço)
-        default => [0, 0], // Valor padrão para casos não previstos
-    };
+        return 0;
+    }
 
-    return DB::table('funcionarios_range')
-        ->where('industria', $industria)
-        ->where('min_funcionarios', '<=', $faixa[0])
-        ->where('max_funcionarios', '>=', $faixa[1])
-        ->value('id');
-}
+    /**
+     * @param int|null $simples
+     * @param int|null $porte
+     * @return int
+     */
+    private function checkFaturamento(?int $simples, ?int $porte): int
+    {
+        if (empty($porte)) {
+            return 0;
+        }
 
+        if ($simples === 1) {
+            switch ($porte) {
+                case 1:
+                    echo 'Simples | ME: R$ 81.000,01 até R$ 360.000,00' . PHP_EOL;
+                    return 2;
+                case 3:
+                    echo 'Simples | EPP: R$ 360.000,01 até R$ 4.800.000,00' . PHP_EOL;
+                    return 3;
+                case 5:
+                    echo 'Simples | Acima do Simples: R$ 4.800.000,01 até infinito' . PHP_EOL;
+                    return 4;
+                default:
+                    return 0;
+            }
+        }
+
+        switch ($porte) {
+            case 1:
+                echo 'Lucro Real/Presumido | ME: Até R$ 360.000,00' . PHP_EOL;
+                return 5;
+            case 3:
+                echo 'Lucro Real/Presumido | EPP: R$ 360.000,01 até R$ 4.800.000,00' . PHP_EOL;
+                return 6;
+            case 5:
+                echo 'Lucro Real/Presumido | Demais: R$ 4.800.000,01 até R$ 78.000.000,00 ou mais' . PHP_EOL;
+                return 7;
+            default:
+                return 0;
+        }
+    }
 
     private const CHUNK_SIZE = 3000;
 
@@ -107,11 +157,10 @@ private function getFuncionarioRangeId(string $cnae, int $porte): ?int
             'situacao_cadastral'        => (int) $linha['situacao_cadastral'],
             'data_situacao_cadastral'   => $this->formatarData($linha['data_situacao_cadastral']),
             'motivo_situacao_cadastral' => (int) $linha['motivo_situacao_cadastral'],
-            'funcionarios'              => $this->getFuncionarioRangeId(
-                $linha['cnae_fiscal_principal'],
-                (int) $empresa['porte']
+            'funcionarios'              => $this->checkFuncionarios(
+              $empresa
             ),
-            'faturamento'               => $this->getFaturamentoRangeId((float) $empresa['capital_social']),
+            'faturamento'               => $this->checkFaturamento($simples['opcao_pelo_simples'] === 'S' ? 1 : 0 , (float) $empresa['porte']),
 
         ];
     }
