@@ -228,7 +228,6 @@ class EmpresaBaseUseCase
                 ['filename' => 'EmpresaBase'],
                 ['last_chunk' => $startId - 1, 'updated_at' => now()]
             );
-            exit;
             $lastId = $startId - 1;
         }
     }
