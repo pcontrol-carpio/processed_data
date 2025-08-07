@@ -5,6 +5,7 @@ use App\Exceptions\ArquivoImportadoException;
 use App\Http\Controllers\DirectoryController;
 use App\UseCases\EmpresaBaseUseCase;
 use App\Utils\FileCleaner;
+use DB;
 use Exception;
 use Illuminate\Console\Command;
 
@@ -79,8 +80,18 @@ class ReadDirecotryCommand extends Command
             }
 try{
      $this->info('Iniciando o processo da tabela base');
+
+        DB::table('completados')->insert([
+                    'processado_id' => $current_directory->id,
+                    'arquivo'       => 'EmpresaBase',
+                    'iniciado_em'   => now(),
+                ]);
             $empresaBase = $this->empresaBaseUseCase;
             $empresaBase();
+            // Atualiza o status de conclusão do processamento
+            DB::table('completados')
+            ->where('processado_id', $current_directory->id)
+            ->where('arquivo', 'EmpresaBase')->update(['concluido_em' => now()]);
 }catch(Exception $e){
     dd($e);
 }
