@@ -137,6 +137,8 @@ class EmpresaBaseUseCase
 
     private function montarRegistro($idEstabelecimento, $empresa, $simples, $linha)
     {
+
+        $empresa['cnae_fiscal_principal'] = $linha['cnae_fiscal_principal'];
         return [
             'estabelecimento_id'        => $idEstabelecimento,
             'razao_social'              => $empresa['razao_social'],
