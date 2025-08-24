@@ -47,10 +47,11 @@ abstract class CsvChunkReader
 
     private function sanitizeCsv(string $file): string
     {
-        $sanitizedFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cleaned_' . basename($file);
+        // Cria um arquivo temporário para armazenar o conteúdo sanitizado
+        $tempFile = "$file.tmp";
 
         $in  = fopen($file, 'r');
-        $out = fopen($sanitizedFile, 'w');
+        $out = fopen($tempFile, 'w');
 
         if (! $in || ! $out) {
             throw new \RuntimeException("Erro ao abrir arquivos para sanitização");
@@ -63,8 +64,14 @@ abstract class CsvChunkReader
 
         fclose($in);
         fclose($out);
-        @unlink($file); // opcional, remove o arquivo original
-        return $sanitizedFile;
+
+        // Substitui o arquivo original pelo sanitizado
+        if (!rename($tempFile, $file)) {
+            @unlink($tempFile); // Remove o arquivo temporário em caso de erro
+            throw new \RuntimeException("Erro ao substituir o arquivo original");
+        }
+
+        return $file;
     }
 
     /**
@@ -75,11 +82,10 @@ abstract class CsvChunkReader
      */
     public function readCsv(string $file, $colunas, int $startChunk = 0): \Generator
     {
-        $filename      = basename($file);
-        // $sanitizedFile = $this->sanitizeCsv($file);
+        $filename = basename($file);
+        $this->sanitizeCsv($file); // Sanitiza o arquivo in-place
 
-
-        $handle        = fopen($file, 'r');
+        $handle = fopen($file, 'r');
         if ($handle === false) {
             throw new Exception('Erro ao abrir o arquivo');
         }
