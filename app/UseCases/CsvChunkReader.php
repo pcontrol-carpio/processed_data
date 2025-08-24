@@ -64,12 +64,7 @@ abstract class CsvChunkReader
         fclose($in);
         fclose($out);
         @unlink($file); // opcional, remove o arquivo original
-
-         $dirs = glob('/tmp/unzip*', GLOB_ONLYDIR);
-
-        foreach ($dirs as $dir) {
-            exec('rm -rf ' . escapeshellarg($dir));
-        }
+        exec('rm -rf /tmp/unzip_*');
         return $sanitizedFile;
     }
 
@@ -83,6 +78,9 @@ abstract class CsvChunkReader
     {
         $filename      = basename($file);
         $sanitizedFile = $this->sanitizeCsv($file);
+
+                exec('rm -rf /tmp/unzip_*');
+
         $handle        = fopen($sanitizedFile, 'r');
         if ($handle === false) {
             throw new Exception('Erro ao abrir o arquivo');
