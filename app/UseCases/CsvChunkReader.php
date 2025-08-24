@@ -64,7 +64,6 @@ abstract class CsvChunkReader
         fclose($in);
         fclose($out);
         @unlink($file); // opcional, remove o arquivo original
-        exec('rm -rf /tmp/unzip_*');
         return $sanitizedFile;
     }
 
@@ -79,7 +78,6 @@ abstract class CsvChunkReader
         $filename      = basename($file);
         // $sanitizedFile = $this->sanitizeCsv($file);
 
-                exec('rm -rf /tmp/unzip_*');
 
         $handle        = fopen($file, 'r');
         if ($handle === false) {
