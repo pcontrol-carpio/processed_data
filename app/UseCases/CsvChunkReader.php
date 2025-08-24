@@ -77,11 +77,11 @@ abstract class CsvChunkReader
     public function readCsv(string $file, $colunas, int $startChunk = 0): \Generator
     {
         $filename      = basename($file);
-        $sanitizedFile = $this->sanitizeCsv($file);
+        // $sanitizedFile = $this->sanitizeCsv($file);
 
                 exec('rm -rf /tmp/unzip_*');
 
-        $handle        = fopen($sanitizedFile, 'r');
+        $handle        = fopen($file, 'r');
         if ($handle === false) {
             throw new Exception('Erro ao abrir o arquivo');
         }
