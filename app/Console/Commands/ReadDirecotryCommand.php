@@ -40,12 +40,17 @@ class ReadDirecotryCommand extends Command
         $url = env('URL_BASE');
 
         $current_directory = $this->directoryController->findDirectory($url);
+
+
         if (empty($current_directory)) {
             $this->info("Nenhum diretorio novo para ler");
             return;
         }
         $folder = $current_directory->pasta;
+
+
         if (! empty($current_directory)) {
+
 
             $listDirectory = $this->directoryController->listDirectory($url . $folder);
             $processeds    = array();

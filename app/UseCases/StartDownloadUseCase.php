@@ -43,7 +43,6 @@ class StartDownloadUseCase
 
     private function download($file)
     {
-
         FileCleaner::cleanTemporaryFiles();
         $name = basename($file);
 
