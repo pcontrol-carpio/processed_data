@@ -14,10 +14,10 @@ class ListDirectoryUseCase
         $pastasRemotas = array();
                     $pastasRemotas[] = 'Simples.zip';
 
-        for($i = 0; $i != 9 ; $i++){
-            $pastasRemotas[] = 'Empresas'.$i.'.zip';
-            $pastasRemotas[] = 'Estabelecimentos'.$i.'.zip';
-            $pastasRemotas[] = 'Socios'.$i.'.zip';
+        for($i = 0; $i <= 9 ; $i++){
+            $pastasRemotas[] = "Empresas$i.zip";
+            $pastasRemotas[] = "Estabelecimentos$i.zip";
+            $pastasRemotas[] = "Socios$i.zip";
 
         }
 
