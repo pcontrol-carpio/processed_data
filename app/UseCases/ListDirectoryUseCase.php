@@ -12,8 +12,7 @@ class ListDirectoryUseCase
         // $pastasProcessadas = DB::table('processados')->where('completo',1)->pluck('pasta');
 
         $pastasRemotas = array();
-                    $pastasRemotas[] = 'Simples.zip';
-
+         $pastasRemotas[] = 'Simples.zip';
         for($i = 0; $i <= 9 ; $i++){
             $pastasRemotas[] = "Empresas$i.zip";
             $pastasRemotas[] = "Estabelecimentos$i.zip";
@@ -21,14 +20,6 @@ class ListDirectoryUseCase
 
         }
 
-        // // Busca HTML remoto e extrai os links de diretórios válidos
-        // $html = Http::get($url)->body();
-        // preg_match_all('/href="([^"]+)"/i', $html, $matches);
-        // $pastasRemotas = collect($matches[1])->filter(function ($href) {
-
-        //     return str_ends_with($href, '.zip') && (str_starts_with($href, 'Empresas') || str_starts_with($href, 'Estabelecimentos') || str_starts_with($href, 'Simples') || str_starts_with($href, 'Socios'))
-        //     ;
-        // });
         if(empty($pastasRemotas)){
             return null;
         }

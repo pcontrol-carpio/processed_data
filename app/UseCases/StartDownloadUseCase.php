@@ -6,7 +6,7 @@ use App\Utils\FileCleaner;
 use DB;
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\GuzzleException;
 use Nette\Utils\FileSystem;
 use ZipArchive;
 
@@ -67,27 +67,44 @@ class StartDownloadUseCase
             }
         }
         $client = new Client();
+        $maxAttempts = 3;
+        $retryDelayMs = 2000;
+
         try {
 
-            $client->request('GET', $file, [
-                'sink'     => $zipPath,
-                'progress' => function (
-                    $downloadTotal,
-                    $downloadedBytes,
-                    $uploadTotal,
-                    $uploadedBytes
-                ) {
-                    if ($downloadTotal > 0) {
-                        $percent = round($downloadedBytes / $downloadTotal * 100, 2);
-                        echo "\rBaixado: $percent% ($downloadedBytes de $downloadTotal bytes)";
-                    } else {
-                        echo "\rBaixado: $downloadedBytes bytes (tamanho total desconhecido)";
+            retry($maxAttempts, function ($attempt) use ($client, $file, $zipPath, $maxAttempts) {
+                if ($attempt > 1) {
+                    if (file_exists($zipPath)) {
+                        unlink($zipPath);
                     }
-                    flush();
-                },
-            ]);
-        } catch (RequestException $e) {
-            throw new Exception('Erro ao baixar ZIP');
+
+                    echo "\nTentando novamente download ($attempt/$maxAttempts)...\n";
+                }
+
+                $client->request('GET', $file, [
+                    'sink'     => $zipPath,
+                    'progress' => function (
+                        $downloadTotal,
+                        $downloadedBytes,
+                        $uploadTotal,
+                        $uploadedBytes
+                    ) {
+                        if ($downloadTotal > 0) {
+                            $percent = round($downloadedBytes / $downloadTotal * 100, 2);
+                            echo "\rBaixado: $percent% ($downloadedBytes de $downloadTotal bytes)";
+                        } else {
+                            echo "\rBaixado: $downloadedBytes bytes (tamanho total desconhecido)";
+                        }
+                        flush();
+                    },
+                ]);
+            }, $retryDelayMs, fn ($exception) => $exception instanceof GuzzleException);
+        } catch (GuzzleException $e) {
+            if (file_exists($zipPath)) {
+                unlink($zipPath);
+            }
+
+            throw new Exception('Erro ao baixar ZIP do servidor após múltiplas tentativas: ' . $e->getMessage());
         }
         $extractDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('unzip_', true);
         mkdir($extractDir);
