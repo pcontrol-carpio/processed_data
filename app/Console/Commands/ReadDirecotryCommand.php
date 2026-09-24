@@ -20,7 +20,8 @@ class ReadDirecotryCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'app:read-directory';
+    protected $signature = 'app:read-directory
+                            {--base : Pula os arquivos e processa diretamente a tabela base}';
 
     /**
      * The console command description.
@@ -52,35 +53,38 @@ class ReadDirecotryCommand extends Command
         if (! empty($current_directory)) {
 
 
-            $listDirectory = $this->directoryController->listDirectory($url . $folder);
             $processeds    = array();
-            foreach ($listDirectory as $type => $files) {
+            if (! $this->option('base')) {
+                $listDirectory = $this->directoryController->listDirectory($url . $folder);
+                foreach ($listDirectory as $type => $files) {
 
-                $myFiles = array_reverse(collect($files)->toArray());
-                $this->info("Iniciando download dos arquivos da pasta {$type}");
-                foreach ($myFiles as $file) {
-                    $processeds[$file] = false;
+                    $myFiles = array_reverse(collect($files)->toArray());
+                    $this->info("Iniciando download dos arquivos da pasta {$type}");
+                    foreach ($myFiles as $file) {
+                        $processeds[$file] = false;
 
-                    $this->warn("Iniciando download do arquivo {$file}");
-                    try {
-                        $file_csv = $this->directoryController->downloadFile($file, $current_directory, $url);
-                        $processed = $this->directoryController->processFile($file_csv, $type, $file, $current_directory);
-                        if ($processed) {
+                        $this->warn("Iniciando download do arquivo {$file}");
+                        try {
+                            $file_csv = $this->directoryController->downloadFile($file, $current_directory, $url);
+                            $processed = $this->directoryController->processFile($file_csv, $type, $file, $current_directory);
+                            if ($processed) {
+                                $processeds[$file] = true;
+
+                                $this->info("Arquivo {$file_csv} processado com sucesso");
+                            } else {
+                                $this->error("Erro ao processar arquivo {$file_csv}");
+                            }
+                        } catch (ArquivoImportadoException $e) {
+                            $this->error("Arquivo {$file} já foi processado anteriormente");
                             $processeds[$file] = true;
+                        } catch (Exception $e) {
 
-                            $this->info("Arquivo {$file_csv} processado com sucesso");
-                        } else {
-                            $this->error("Erro ao processar arquivo {$file_csv}");
+                            $this->error($e->getMessage());
                         }
-                    } catch (ArquivoImportadoException $e) {
-                        $this->error("Arquivo {$file} já foi processado anteriormente");
-                        $processeds[$file] = true;
-                    } catch (Exception $e) {
-
-                        $this->error($e->getMessage());
                     }
                 }
-
+            } else {
+                $this->warn('Opção --base informada: downloads e importações serão ignorados');
             }
 try{
      $this->info('Iniciando o processo da tabela base');
