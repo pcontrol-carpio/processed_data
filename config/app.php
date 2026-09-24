@@ -105,6 +105,10 @@ return [
         ),
     ],
 
+    'csv_chunk_size' => env('CSV_CHUNK_SIZE', 2000),
+
+    'csv_read_reverse' => (bool) env('CSV_READ_REVERSE', false),
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver

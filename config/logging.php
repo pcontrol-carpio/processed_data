@@ -52,6 +52,14 @@ return [
 
     'channels' => [
 
+        'csv' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/csv_reader.log'),
+            'level' => env('CSV_LOG_LEVEL', 'debug'),
+            'days' => 1,
+            'replace_placeholders' => true,
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', env('LOG_STACK', 'single')),

@@ -77,7 +77,6 @@ class ReadDirecotryCommand extends Command
                         $processeds[$file] = true;
                     } catch (Exception $e) {
 
-                        dd($e);
                         $this->error($e->getMessage());
                     }
                 }
@@ -98,7 +97,7 @@ try{
             ->where('processado_id', $current_directory->id)
             ->where('arquivo', 'EmpresaBase')->update(['concluido_em' => now()]);
 }catch(Exception $e){
-    dd($e);
+    $this->error($e->getMessage());
 }
 
 
