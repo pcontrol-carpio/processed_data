@@ -180,18 +180,20 @@ class EmpresaBaseUseCase
             $lastId = DB::table('estabelecimento')->max('id');
         }
 
-        $temMais = true;
-
-        while ($temMais && $lastId > 0) {
-            $startId = max(1, $lastId - $limit + 1);
-            echo "Lendo estabelecimentos do ID: $lastId descendo até $startId..." . PHP_EOL;
+        while ($lastId > 0) {
+            echo "Lendo até $limit estabelecimentos a partir do ID: $lastId..." . PHP_EOL;
 
             $estabelecimentos = DB::table('estabelecimento')
-                ->whereBetween('id', [$startId, $lastId])
+                ->where('id', '<=', $lastId)
                 ->orderBy('id', 'desc')
+                ->limit($limit)
                 ->get();
 
-            $temMais   = ! $estabelecimentos->isEmpty();
+            if ($estabelecimentos->isEmpty()) {
+                break;
+            }
+
+            $nextId = (int) $estabelecimentos->last()->id - 1;
             $dadosLote = [];
 
             foreach ($estabelecimentos as $idx => $estabelecimento) {
@@ -226,9 +228,9 @@ class EmpresaBaseUseCase
             // Atualiza progresso
             DB::table('csv_progress')->updateOrInsert(
                 ['filename' => 'EmpresaBase'],
-                ['last_chunk' => $startId - 1, 'updated_at' => now()]
+                ['last_chunk' => $nextId, 'updated_at' => now()]
             );
-            $lastId = $startId - 1;
+            $lastId = $nextId;
         }
     }
 
@@ -259,6 +261,7 @@ class EmpresaBaseUseCase
         } catch (Exception $e) {
             file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true));
             echo '❌ Erro ao processar lote: ' . $e->getMessage() . PHP_EOL;
+            throw $e;
         }
     }
 
