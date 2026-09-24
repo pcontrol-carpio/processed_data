@@ -52,7 +52,6 @@ class EmpresaUseCase extends CsvChunkReader
                 echo "Chunk inserido com sucesso" . PHP_EOL;
 
             } catch (Exception $e) {
-              dd($e);
                 file_put_contents('/tmp/erro.txt', print_r($e->getMessage(), true) . PHP_EOL);
                 exit;
 
